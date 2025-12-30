@@ -26,24 +26,27 @@ body {
     color: var(--text-primary);
 }
 
+/* App Container - angepasst für schmaleres Layout */
 .app-container {
-    max-width: 1200px;
+    max-width: 900px; /* Reduziert von 1200px auf 900px */
     margin: 0 auto;
     padding: 20px;
+    padding-bottom: 40px; /* Mehr Platz unten für die letzte Karte */
 }
 
 /* Fallback für alte HTML-Struktur */
 .container {
-    max-width: 1200px;
+    max-width: 900px; /* Reduziert von 1200px auf 900px */
     margin: 0 auto;
     padding: 20px;
+    padding-bottom: 40px;
 }
 
-/* Hero Section */
+/* Hero Section - kleinere Abstände */
 .hero-section {
     text-align: center;
-    padding: 60px 20px;
-    margin-bottom: 40px;
+    padding: 40px 20px 20px; /* Reduziert von 60px auf 40px oben und 40px auf 20px unten */
+    margin-bottom: 20px; /* Reduziert von 40px auf 20px */
 }
 
 .hero-content {
@@ -155,6 +158,11 @@ body {
     font-weight: 300;
 }
 
+/* Content Section */
+.content-section {
+    padding-bottom: 40px; /* Sicherstellt, dass die letzte Karte genug Abstand nach unten hat */
+}
+
 /* Fallback für alte Header-Struktur */
 header {
     background: rgba(255, 255, 255, 0.95);
@@ -229,13 +237,15 @@ header h1 i {
     box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
 }
 
-/* Vehicle Grid - Kompakt */
+/* Vehicle Grid - schmalere Karten */
 .vehicle-grid,
 .vehicle-list {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); /* Reduziert von 350px auf 320px */
+    gap: 18px; /* Reduziert von 20px auf 18px */
     padding: 0 20px;
+    max-width: 800px; /* Neue maximale Breite für schmalere Layout */
+    margin: 0 auto; /* Zentriert das Grid */
 }
 
 .content-section .vehicle-grid {
@@ -627,10 +637,12 @@ header h1 i {
     .app-container,
     .container {
         padding: 15px;
+        padding-bottom: 30px; /* Mehr Platz unten auf mobilen Geräten */
     }
     
     .hero-section {
-        padding: 40px 20px;
+        padding: 30px 20px 15px; /* Noch kleinere Abstände auf mobilen Geräten */
+        margin-bottom: 15px;
     }
     
     .app-title {
@@ -641,6 +653,8 @@ header h1 i {
     .vehicle-list {
         grid-template-columns: 1fr;
         padding: 0;
+        gap: 16px;
+        max-width: none;
     }
     
     .vehicle-header {
@@ -702,6 +716,11 @@ header h1 i {
         font-size: 1.8rem;
     }
     
+    .hero-section {
+        padding: 25px 20px 10px;
+        margin-bottom: 10px;
+    }
+    
     .vehicle-card {
         margin: 0;
     }
@@ -709,7 +728,7 @@ header h1 i {
     .vehicle-grid,
     .vehicle-list {
         grid-template-columns: 1fr;
-        gap: 16px;
+        gap: 14px;
     }
     
     .vehicle-header {
@@ -735,5 +754,9 @@ header h1 i {
     
     .empty-state h3 {
         font-size: 1.5rem;
+    }
+    
+    .app-container {
+        padding-bottom: 25px;
     }
 }
