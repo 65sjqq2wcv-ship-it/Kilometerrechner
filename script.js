@@ -244,5 +244,59 @@ if ('serviceWorker' in navigator) {
     });
 }
 
+// Zusätzlich zum bestehenden Code in script.js:
+
+// Smooth scroll und moderne Interaktionen
+document.addEventListener('DOMContentLoaded', function() {
+    // Close modal mit Escape-Taste
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            vehicleManager.hideModal();
+        }
+    });
+    
+    // Close button event
+    document.getElementById('closeModalBtn')?.addEventListener('click', () => {
+        vehicleManager.hideModal();
+    });
+    
+    // Smooth animations für Fahrzeugkarten
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.animationDelay = Math.random() * 0.3 + 's';
+                entry.target.classList.add('animate-in');
+            }
+        });
+    }, observerOptions);
+    
+    // Animation CSS
+    const animationCSS = `
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .animate-in {
+            animation: slideInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+    `;
+    
+    const style = document.createElement('style');
+    style.textContent = animationCSS;
+    document.head.appendChild(style);
+});
+
 // Initialize the app
 const vehicleManager = new VehicleManager();
