@@ -1,59 +1,64 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kilometerrechner - Leasingfahrzeuge</title>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#2196F3">
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-</head>
-<body>
-    <div class="container">
-        <header>
-            <h1><i class="material-icons">directions_car</i> Kilometerrechner</h1>
-            <button id="addVehicleBtn" class="add-btn">
-                <i class="material-icons">add</i>
-                Fahrzeug hinzufügen
-            </button>
-        </header>
-
-        <div id="vehicleList" class="vehicle-list">
-            <!-- Fahrzeuge werden hier dynamisch eingefügt -->
-        </div>
-
-        <!-- Modal für Fahrzeug hinzufügen/bearbeiten -->
-        <div id="vehicleModal" class="modal">
-            <div class="modal-content">
-                <h2 id="modalTitle">Fahrzeug hinzufügen</h2>
-                <form id="vehicleForm">
-                    <div class="form-group">
-                        <label for="vehicleName">Fahrzeugname:</label>
-                        <input type="text" id="vehicleName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="pickupDate">Tag der Abholung:</label>
-                        <input type="date" id="pickupDate" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="totalMileage">Gesamte Fahrleistung (km):</label>
-                        <input type="number" id="totalMileage" required min="1">
-                    </div>
-                    <div class="form-group">
-                        <label for="contractDuration">Vertragslaufzeit (Monate):</label>
-                        <input type="number" id="contractDuration" required min="1">
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" id="cancelBtn" class="btn btn-secondary">Abbrechen</button>
-                        <button type="submit" class="btn btn-primary">Speichern</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
-</body>
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="de">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Kilometerrechner</title>
+		<link rel="manifest" href="manifest.json" />
+		<meta name="theme-color" content="#2196F3" />
+		<link rel="stylesheet" href="styles.css" type="text/css" />
+		<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&amp;display=swap" rel="stylesheet" type="text/css" />
+		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" type="text/css" />
+		<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+		<link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
+	</head>
+	<body>
+		<div class="container">
+			<h1>
+				<i class="material-icons">directions_car</i>
+                 Kilometerrechner
+</h1>
+			<button id="addVehicleBtn" class="add-btn">
+				<i class="material-icons">add</i>
+                 Fahrzeug hinzufügen</button>
+			<div id="vehicleList" class="vehicle-list">
+				<!-- Fahrzeuge werden hier dynamisch eingefügt -->
+			</div>
+			<!-- Modal für Fahrzeug hinzufügen/bearbeiten -->
+			<div id="vehicleModal" class="modal">
+				<div class="modal-content">
+					<h2 id="modalTitle">Fahrzeug hinzufügen
+</h2>
+					<form id="vehicleForm">
+						<div class="form-group">
+							<label for="vehicleName">Fahrzeugname:</label>
+                             <input type="text" id="vehicleName" required="" />
+                            
+</div>
+						<div class="form-group">
+							<label for="pickupDate">Tag der Abholung:</label>
+                             <input type="date" id="pickupDate" required="" />
+                            
+</div>
+						<div class="form-group">
+							<label for="totalMileage">Gesamte Fahrleistung (km):</label>
+                             <input type="number" id="totalMileage" required="" min="1" />
+                            
+</div>
+						<div class="form-group">
+							<label for="contractDuration">Vertragslaufzeit (Monate):</label>
+                             <input type="number" id="contractDuration" required="" min="1" />
+                            
+</div>
+						<div class="form-actions">
+							<button type="button" id="cancelBtn" class="btn btn-secondary">Abbrechen</button>
+                             <button type="submit" class="btn btn-primary">Speichern</button>
+                            
+</div>
+					</form>
+				</div>
+			</div>
+		</div>
+		<script src="script.js" type="text/javascript"></script>
+	</body>
 </html>

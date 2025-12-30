@@ -136,7 +136,7 @@ class VehicleManager {
                 <div class="empty-state">
                     <i class="material-icons">directions_car</i>
                     <h3>Keine Fahrzeuge vorhanden</h3>
-                    <p>Fügen Sie Ihr erstes Leasingfahrzeug hinzu, um mit der Kilometerverfolgung zu beginnen.</p>
+                    <p>Fügen Sie Ihr erstes Fahrzeug hinzu, um mit der Kilometerverfolgung zu beginnen.</p>
                 </div>
             `;
             return;
@@ -165,7 +165,7 @@ class VehicleManager {
                                 <i class="material-icons">event</i>
                                 Tag der Abholung
                             </div>
-                            <div class="info-value highlight">
+                            <div class="info-value">
                                 ${new Date(vehicle.pickupDate).toLocaleDateString('de-DE')}
                             </div>
                         </div>
@@ -181,10 +181,10 @@ class VehicleManager {
                         <div class="info-row">
                             <div class="info-label">
                                 <i class="material-icons">straighten</i>
-                                Gesamte Fahrleistung in km
+                                Gesamte Fahrleistung
                             </div>
-                            <div class="info-value highlight">
-                                ${vehicle.totalMileage.toLocaleString('de-DE')}
+                            <div class="info-value">
+                                ${vehicle.totalMileage.toLocaleString('de-DE') + " KM"}
                             </div>
                         </div>
                         <div class="info-row">
@@ -199,10 +199,10 @@ class VehicleManager {
                         <div class="info-row">
                             <div class="info-label">
                                 <i class="material-icons">timeline</i>
-                                km bis heute
+                                bis heute
                             </div>
-                            <div class="info-value ${statusClass}">
-                                ${data.kmToDate.toLocaleString('de-DE')}
+                            <div class="info-value">
+                                ${data.kmToDate.toLocaleString('de-DE') + " KM"}
                             </div>
                         </div>
                     </div>

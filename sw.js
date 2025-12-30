@@ -5,6 +5,8 @@ const urlsToCache = [
     '/styles.css',
     '/script.js',
     '/manifest.json',
+    '/icon-192.png',
+    '/icon-512.png',
     'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap',
     'https://fonts.googleapis.com/icon?family=Material+Icons'
 ];
