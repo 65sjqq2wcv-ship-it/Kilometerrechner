@@ -1,11 +1,11 @@
 {
-    "name": "Kilometerrechner - Leasingfahrzeuge",
-    "short_name": "KM-Rechner",
+    "name": "Kilometerrechner",
+    "short_name": "Kilometerrechner",
     "description": "Berechnen Sie die Laufleistung Ihrer Leasingfahrzeuge",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#667eea",
-    "theme_color": "#2196F3",
+    "theme_color": "#667eea",
     "icons": [
         {
             "src": "icon-192.png",
