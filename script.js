@@ -184,25 +184,25 @@ class VehicleManager {
                                 Gesamte Fahrleistung
                             </div>
                             <div class="info-value">
-                                ${vehicle.totalMileage.toLocaleString('de-DE') + " KM"}
+                                ${vehicle.totalMileage.toLocaleString('de-DE') + " km"}
                             </div>
                         </div>
                         <div class="info-row">
                             <div class="info-label">
                                 <i class="material-icons">speed</i>
-                                km pro Tag
+                                Fahrleistung pro Tag
                             </div>
                             <div class="info-value">
-                                ${data.kmPerDay}
+                                ${data.kmPerDay + " km"}
                             </div>
                         </div>
                         <div class="info-row">
                             <div class="info-label">
                                 <i class="material-icons">timeline</i>
-                                bis heute
+                                Fahrleistung bis heute
                             </div>
                             <div class="info-value">
-                                ${data.kmToDate.toLocaleString('de-DE') + " KM"}
+                                ${data.kmToDate.toLocaleString('de-DE') + " km"}
                             </div>
                         </div>
                     </div>

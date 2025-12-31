@@ -18,10 +18,16 @@
     --radius: 20px;
 }
 
+html {
+    height: 100%;
+}
+
 body {
     font-family: 'Inter', sans-serif;
     background: var(--background);
+    background-attachment: fixed; /* Sorgt dafür, dass der Gradient fixiert bleibt */
     min-height: 100vh;
+    height: 100%;
     line-height: 1.6;
     color: var(--text-primary);
 }
