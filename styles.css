@@ -4,37 +4,6 @@
     box-sizing: border-box;
 }
 
-/* PWA iOS Safe Area Support */
-html {
-    height: 100%;
-    overflow-x: hidden;
-}
-
-body {
-    font-family: 'Inter', sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    background-attachment: fixed;
-    min-height: 100vh;
-    min-height: -webkit-fill-available; /* iOS Safari */
-    height: 100%;
-    line-height: 1.6;
-    color: var(--text-primary);
-    
-    /* PWA Safe Areas für iPhone */
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
-}
-
-/* iOS PWA spezifische Styles */
-@supports (-webkit-touch-callout: none) {
-    body {
-        min-height: 100vh;
-        min-height: -webkit-fill-available;
-    }
-}
-
 :root {
     --primary-color: #667eea;
     --secondary-color: #764ba2;
@@ -49,24 +18,26 @@ body {
     --radius: 20px;
 }
 
-/* App Container Anpassungen für PWA */
-.app-container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 20px;
-    padding-bottom: 40px;
-    /* Zusätzliches Padding für Safe Areas */
-    padding-top: max(20px, env(safe-area-inset-top));
-    padding-bottom: max(40px, env(safe-area-inset-bottom));
+html {
+    height: 100%;
 }
 
-/* Hero Section Anpassungen */
-.hero-section {
-    text-align: center;
-    padding: 40px 20px 20px;
-    margin-bottom: 20px;
-    /* Verhindere Überschneidung mit Status Bar */
-    margin-top: 0;
+body {
+    font-family: 'Inter', sans-serif;
+    background: var(--background);
+    background-attachment: fixed; /* Sorgt dafür, dass der Gradient fixiert bleibt */
+    min-height: 100vh;
+    height: 100%;
+    line-height: 1.6;
+    color: var(--text-primary);
+}
+
+/* App Container - angepasst für schmaleres Layout */
+.app-container {
+    max-width: 900px; /* Reduziert von 1200px auf 900px */
+    margin: 0 auto;
+    padding: 20px;
+    padding-bottom: 40px; /* Mehr Platz unten für die letzte Karte */
 }
 
 /* Fallback für alte HTML-Struktur */
