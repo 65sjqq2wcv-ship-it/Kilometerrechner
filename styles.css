@@ -18,18 +18,27 @@
     --radius: 20px;
 }
 
-body {
+html, body {
     font-family: 'Inter', sans-serif;
     background: var(--background);
     min-height: 100vh;
+    height: 100%;
     line-height: 1.6;
     color: var(--text-primary);
+    background-attachment: fixed;
+}
+
+body {
+    background: var(--background);
+    min-height: 100vh;
+    width: 100%;
 }
 
 .app-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
+    min-height: 100vh;
 }
 
 /* Fallback für alte HTML-Struktur */
@@ -144,8 +153,16 @@ body {
     font-size: 2.5rem;
     font-weight: 700;
     color: white;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.app-version {
+    font-size: 9px;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 25px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .app-subtitle {
@@ -229,15 +246,16 @@ header h1 i {
     box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
 }
 
-/* Vehicle Grid - Kompakt */
+/* Vehicle Grid - Mittig und untereinander */
 .vehicle-grid,
-vehicle-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); /* Reduziert von 350px auf 320px */
-    gap: 18px; /* Reduziert von 20px auf 18px */
-    padding: 0 20px;
-    max-width: 800px; /* Neue maximale Breite für schmalere Layout */
-    margin: 10px; /* Zentriert das Grid */
+.vehicle-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    padding: 0;
+    max-width: 400px;
+    margin: 0 auto;
 }
 
 .content-section .vehicle-grid {
@@ -252,6 +270,8 @@ vehicle-list {
     backdrop-filter: blur(10px);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
+    width: 100%;
+    max-width: 380px;
 }
 
 .vehicle-card::before {
@@ -438,8 +458,9 @@ vehicle-list {
     background: var(--surface);
     border-radius: var(--radius);
     backdrop-filter: blur(10px);
-    margin: 0 20px;
-    grid-column: 1 / -1;
+    margin: 0 auto;
+    max-width: 380px;
+    width: 100%;
 }
 
 .empty-state i {
@@ -641,8 +662,11 @@ vehicle-list {
     
     .vehicle-grid,
     .vehicle-list {
-        grid-template-columns: 1fr;
-        padding: 0;
+        max-width: 100%;
+    }
+    
+    .vehicle-card {
+        max-width: 100%;
     }
     
     .vehicle-header {
@@ -710,7 +734,6 @@ vehicle-list {
     
     .vehicle-grid,
     .vehicle-list {
-        grid-template-columns: 1fr;
         gap: 16px;
     }
     
@@ -728,7 +751,7 @@ vehicle-list {
     
     .empty-state {
         padding: 60px 20px;
-        margin: 0;
+        margin: 0 auto;
     }
     
     .empty-state i {
