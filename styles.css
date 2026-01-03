@@ -22,16 +22,50 @@ html, body {
     font-family: 'Inter', sans-serif;
     background: var(--background);
     min-height: 100vh;
+    min-height: 100svh; /* Neuer Standard für mobile Viewports */
     height: 100%;
     line-height: 1.6;
     color: var(--text-primary);
     background-attachment: fixed;
+    overflow-x: hidden;
 }
 
 body {
     background: var(--background);
     min-height: 100vh;
+    min-height: 100svh;
     width: 100%;
+    /* Spezielle Behandlung für PWA/iOS */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+}
+
+/* PWA spezifische Anpassungen */
+@supports (display: standalone) {
+    body {
+        padding-top: max(env(safe-area-inset-top), 20px);
+    }
+}
+
+/* iOS Safari spezifische Anpassungen */
+@supports (-webkit-appearance: none) and (stroke-color: transparent) {
+    body {
+        background: var(--background);
+        background-attachment: fixed;
+    }
+}
+
+/* Status bar Bereich für PWA */
+.status-bar-spacer {
+    height: env(safe-area-inset-top);
+    background: var(--background);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 999;
 }
 
 .app-container {
@@ -39,6 +73,8 @@ body {
     margin: 0 auto;
     padding: 20px;
     min-height: 100vh;
+    min-height: calc(100svh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    position: relative;
 }
 
 /* Fallback für alte HTML-Struktur */
@@ -53,6 +89,8 @@ body {
     text-align: center;
     padding: 60px 20px;
     margin-bottom: 40px;
+    /* Extra Padding für iOS Status Bar */
+    padding-top: max(60px, calc(60px + env(safe-area-inset-top)));
 }
 
 .hero-content {
@@ -654,6 +692,7 @@ header h1 i {
     
     .hero-section {
         padding: 40px 20px;
+        padding-top: max(40px, calc(40px + env(safe-area-inset-top)));
     }
     
     .app-title {
@@ -760,5 +799,30 @@ header h1 i {
     
     .empty-state h3 {
         font-size: 1.5rem;
+    }
+}
+
+/* PWA Spezifische Styles für iOS */
+@media (display-mode: standalone) {
+    body {
+        background: var(--background);
+    }
+    
+    .hero-section {
+        padding-top: max(60px, calc(60px + env(safe-area-inset-top)));
+    }
+}
+
+/* iOS Safari spezifisch */
+@supports (-webkit-touch-callout: none) {
+    body {
+        -webkit-appearance: none;
+        -webkit-user-select: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    .hero-section {
+        padding-top: max(60px, calc(60px + constant(safe-area-inset-top)));
+        padding-top: max(60px, calc(60px + env(safe-area-inset-top)));
     }
 }

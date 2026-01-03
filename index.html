@@ -3,17 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-	    <!-- Content Security Policy -->
     <title>Kilometerrechner</title>
     
     <!-- PWA Meta Tags -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#667eea">
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#667eea">
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#667eea">
     
     <!-- iOS PWA Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Kilometerrechner">
+    <meta name="format-detection" content="telephone=no">
+    
+    <!-- Android PWA -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Kilometerrechner">
+    
+    <!-- Windows PWA -->
+    <meta name="msapplication-TileColor" content="#667eea">
+    <meta name="msapplication-tap-highlight" content="no">
     
     <!-- CSS und Fonts -->
     <link rel="stylesheet" href="styles.css">
@@ -29,18 +39,8 @@
         <!-- Hero Section -->
         <div class="hero-section">
             <div class="hero-content">
-                <!--<div class="app-icon">
-                    <div class="speedometer">
-                        <div class="speedometer-arc"></div>
-                        <div class="speedometer-needle"></div>
-                        <div class="speedometer-marks"></div>
-                    </div>
-                    <div class="car-icon">
-                        <i class="material-icons">directions_car</i>
-                    </div>-->
-                </div>
                 <h1 class="app-title">Kilometerrechner</h1>
-                <div class="app-version">v1.11</div>
+                <div class="app-version">v1.12</div>
                 <button id="addVehicleBtn" class="primary-btn">
                     <i class="material-icons">add_circle</i>
                     <span>Fahrzeug hinzufügen</span>
