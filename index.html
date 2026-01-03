@@ -10,12 +10,20 @@
     <meta name="theme-color" content="#667eea">
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#667eea">
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#667eea">
+    <meta name="msapplication-navbutton-color" content="#667eea">
+    <meta name="apple-mobile-web-app-status-bar-style" content="#667eea">
     
-    <!-- iOS PWA Meta Tags -->
+    <!-- iOS PWA Meta Tags - Erweitert -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Kilometerrechner">
     <meta name="format-detection" content="telephone=no">
+    <meta name="apple-touch-fullscreen" content="yes">
+    
+    <!-- Additional iOS Meta Tags -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-status-bar-style" content="black-translucent">
     
     <!-- Android PWA -->
     <meta name="mobile-web-app-capable" content="yes">
@@ -40,7 +48,7 @@
         <div class="hero-section">
             <div class="hero-content">
                 <h1 class="app-title">Kilometerrechner</h1>
-                <div class="app-version">v1.13</div>
+                <div class="app-version">v1.14</div>
                 <div class="action-buttons">
                     <button id="addVehicleBtn" class="primary-btn">
                         <i class="material-icons">add_circle</i>
@@ -94,35 +102,38 @@
         </div>
     </div>
 
-    <!-- Import Modal -->
+    <!-- Import Modal - Scrollbar Fix -->
     <div id="importModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content import-modal-content">
             <div class="modal-header">
                 <h2>CSV Import</h2>
                 <button class="close-btn" id="closeImportModalBtn">
                     <i class="material-icons">close</i>
                 </button>
             </div>
-            <div class="import-content">
-                <div class="import-info">
-                    <p><strong>CSV-Format:</strong></p>
-                    <p class="format-example">Fahrzeugname;Tag der Abholung;Fahrleistung;Laufzeit;</p>
-                    <p class="format-note">Beispiel: BMW 320i;2024-01-15;20000;36;</p>
-                </div>
-                
-                <div class="file-upload-area" id="fileUploadArea">
-                    <div class="upload-icon">
-                        <i class="material-icons">cloud_upload</i>
+            <div class="modal-body">
+                <div class="import-content">
+                    <div class="import-info">
+                        <p><strong>CSV-Format:</strong></p>
+                        <p class="format-example">Fahrzeugname;Tag der Abholung;Fahrleistung;Laufzeit;</p>
+                        <p class="format-note">Beispiel: BMW 320i;2024-01-15;20000;36;</p>
                     </div>
-                    <p class="upload-text">CSV-Datei hier ablegen oder klicken zum Auswählen</p>
-                    <input type="file" id="csvFileInput" accept=".csv,.txt" hidden>
+                    
+                    <div class="file-upload-area" id="fileUploadArea">
+                        <div class="upload-icon">
+                            <i class="material-icons">cloud_upload</i>
+                        </div>
+                        <p class="upload-text">CSV-Datei hier ablegen oder klicken zum Auswählen</p>
+                        <input type="file" id="csvFileInput" accept=".csv,.txt" hidden>
+                    </div>
+                    
+                    <div id="importPreview" class="import-preview" style="display: none;">
+                        <h3>Import-Vorschau:</h3>
+                        <div id="previewContent"></div>
+                    </div>
                 </div>
-                
-                <div id="importPreview" class="import-preview" style="display: none;">
-                    <h3>Import-Vorschau:</h3>
-                    <div id="previewContent"></div>
-                </div>
-                
+            </div>
+            <div class="modal-footer">
                 <div class="form-actions">
                     <button type="button" id="cancelImportBtn" class="btn btn-secondary">Abbrechen</button>
                     <button type="button" id="confirmImportBtn" class="btn btn-primary" style="display: none;">Importieren</button>

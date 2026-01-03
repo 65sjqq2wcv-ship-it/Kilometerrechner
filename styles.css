@@ -18,6 +18,12 @@
     --radius: 20px;
 }
 
+html {
+    height: 100%;
+    background: var(--background);
+    background-attachment: fixed;
+}
+
 html, body {
     font-family: 'Inter', sans-serif;
     background: var(--background);
@@ -26,35 +32,33 @@ html, body {
     height: 100%;
     line-height: 1.6;
     color: var(--text-primary);
-    background-attachment: fixed;
     overflow-x: hidden;
 }
 
+/* iOS PWA spezifische Behandlung */
 body {
-    background: var(--background);
+    background: var(--background) !important;
     min-height: 100vh;
     min-height: 100svh;
     width: 100%;
-    /* Spezielle Behandlung für PWA/iOS - oben und unten */
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
 }
 
-/* PWA spezifische Anpassungen */
-@supports (display: standalone) {
-    body {
-        padding-top: max(env(safe-area-inset-top), 20px);
-        padding-bottom: max(env(safe-area-inset-bottom), 20px);
-    }
-}
-
-/* iOS Safari spezifische Anpassungen */
-@supports (-webkit-appearance: none) and (stroke-color: transparent) {
-    body {
-        background: var(--background);
+/* Spezielle iOS Behandlung */
+@supports (-webkit-appearance: none) {
+    html {
+        background: var(--background) !important;
         background-attachment: fixed;
+    }
+    
+    body {
+        background: var(--background) !important;
+        -webkit-appearance: none;
+        -webkit-user-select: none;
+        -webkit-tap-highlight-color: transparent;
     }
 }
 
@@ -65,15 +69,7 @@ body {
     min-height: 100vh;
     min-height: calc(100svh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
     position: relative;
-    /* Sicherstellen, dass der Container den vollen Bereich ausfüllt */
     padding-bottom: max(20px, env(safe-area-inset-bottom));
-}
-
-/* Fallback für alte HTML-Struktur */
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
 }
 
 /* Hero Section */
@@ -81,7 +77,6 @@ body {
     text-align: center;
     padding: 60px 20px;
     margin-bottom: 40px;
-    /* Extra Padding für iOS Status Bar */
     padding-top: max(60px, calc(60px + env(safe-area-inset-top)));
 }
 
@@ -99,7 +94,7 @@ body {
 }
 
 .app-version {
-    font-size: 11px;
+    font-size: 9px;
     font-style: italic;
     color: rgba(255, 255, 255, 0.7);
     margin-bottom: 25px;
@@ -182,7 +177,6 @@ body {
     padding: 0;
     max-width: 400px;
     margin: 0 auto;
-    /* Sicherstellen, dass der untere Bereich auch mit Hintergrund gefüllt ist */
     min-height: 200px;
     padding-bottom: max(20px, env(safe-area-inset-bottom));
 }
@@ -428,6 +422,8 @@ body {
     height: 100%;
     background: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(8px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .modal-content {
@@ -440,6 +436,28 @@ body {
     box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
     animation: modalAppear 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
+    position: relative;
+}
+
+/* Import Modal spezifisch */
+.import-modal-content {
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-body {
+    flex: 1;
+    overflow-y: auto;
+    max-height: calc(90vh - 140px);
+    -webkit-overflow-scrolling: touch;
+}
+
+.modal-footer {
+    background: white;
+    border-top: 1px solid #f0f0f0;
+    padding: 0;
+    flex-shrink: 0;
 }
 
 @keyframes modalAppear {
@@ -458,6 +476,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .modal-header h2 {
@@ -574,7 +593,10 @@ body {
     background: #f8f9fa;
     border-radius: 12px;
     padding: 20px;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
+    max-height: 300px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .import-preview h3 {
@@ -615,8 +637,8 @@ body {
     display: flex;
     gap: 16px;
     justify-content: flex-end;
-    margin-top: 30px;
-    padding-top: 20px;
+    margin: 0;
+    padding: 20px 30px;
     border-top: 1px solid #f0f0f0;
 }
 
@@ -671,8 +693,7 @@ body {
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .app-container,
-    .container {
+    .app-container {
         padding: 15px;
         padding-bottom: max(15px, env(safe-area-inset-bottom));
     }
@@ -730,12 +751,21 @@ body {
     }
     
     .modal-content {
-        margin: 10% auto;
+        margin: 2% auto;
         width: 95%;
+    }
+    
+    .import-modal-content {
+        max-height: 95vh;
+    }
+    
+    .modal-body {
+        max-height: calc(95vh - 140px);
     }
     
     .form-actions {
         flex-direction: column;
+        padding: 15px 20px;
     }
     
     .btn {
@@ -788,12 +818,41 @@ body {
     .empty-state h3 {
         font-size: 1.5rem;
     }
+    
+    .modal-content {
+        margin: 1% auto;
+        width: 98%;
+    }
+    
+    .import-modal-content {
+        max-height: 98vh;
+    }
+    
+    .modal-body {
+        max-height: calc(98vh - 120px);
+    }
+    
+    .modal-header {
+        padding: 20px 20px 0;
+    }
+    
+    .import-content {
+        padding: 20px;
+    }
+    
+    .form-actions {
+        padding: 15px 20px;
+    }
 }
 
 /* PWA Spezifische Styles für iOS */
 @media (display-mode: standalone) {
+    html {
+        background: var(--background) !important;
+    }
+    
     body {
-        background: var(--background);
+        background: var(--background) !important;
         padding-bottom: max(20px, env(safe-area-inset-bottom));
     }
     
@@ -803,16 +862,30 @@ body {
     
     .app-container {
         padding-bottom: max(20px, env(safe-area-inset-bottom));
+        min-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    }
+    
+    .content-section {
+        padding-bottom: max(40px, env(safe-area-inset-bottom));
     }
 }
 
-/* iOS Safari spezifisch */
+/* iOS Safari spezifisch - Erweiterte Behandlung */
 @supports (-webkit-touch-callout: none) {
+    html {
+        background: var(--background) !important;
+        background-attachment: fixed;
+    }
+    
     body {
         -webkit-appearance: none;
         -webkit-user-select: none;
         -webkit-tap-highlight-color: transparent;
         padding-bottom: max(20px, env(safe-area-inset-bottom));
+        background: var(--background) !important;
+        /* Zusätzliche iOS-spezifische Eigenschaften */
+        -webkit-background-size: cover;
+        background-size: cover;
     }
     
     .hero-section {
@@ -828,15 +901,179 @@ body {
     .content-section {
         padding-bottom: max(40px, env(safe-area-inset-bottom));
     }
+    
+    /* iOS Modal Anpassungen */
+    .modal {
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .modal-body {
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .import-preview {
+        -webkit-overflow-scrolling: touch;
+    }
 }
 
 /* Android Chrome spezifisch */
 @supports (display-mode: standalone) and (not (-webkit-touch-callout: none)) {
     body {
         padding-bottom: max(20px, env(safe-area-inset-bottom));
+        background: var(--background) !important;
     }
     
     .app-container {
         padding-bottom: max(20px, env(safe-area-inset-bottom));
+    }
+}
+
+/* WebKit spezifische Scrollbar-Styles */
+.modal-body::-webkit-scrollbar,
+.import-preview::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track,
+.import-preview::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb,
+.import-preview::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover,
+.import-preview::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Zusätzliche iOS PWA Fixes */
+@media screen and (display-mode: standalone) and (-webkit-touch-callout: none) {
+    html {
+        height: 100%;
+        background: var(--background) !important;
+    }
+    
+    body {
+        height: 100vh;
+        height: 100dvh;
+        background: var(--background) !important;
+        overflow-x: hidden;
+    }
+    
+    .app-container {
+        min-height: 100vh;
+        min-height: 100dvh;
+    }
+}
+
+/* Landscape Orientierung auf mobilen Geräten */
+@media screen and (orientation: landscape) and (max-height: 600px) {
+    .hero-section {
+        padding: 30px 20px;
+        padding-top: max(30px, calc(30px + env(safe-area-inset-top)));
+        margin-bottom: 20px;
+    }
+    
+    .app-title {
+        font-size: 2rem;
+        margin-bottom: 5px;
+    }
+    
+    .app-version {
+        margin-bottom: 15px;
+    }
+    
+    .action-buttons {
+        gap: 8px;
+    }
+    
+    .primary-btn, .secondary-btn {
+        padding: 12px 24px;
+        font-size: 0.9rem;
+    }
+    
+    .modal-content {
+        margin: 2% auto;
+        max-height: 95vh;
+    }
+    
+    .import-modal-content {
+        max-height: 95vh;
+    }
+    
+    .modal-body {
+        max-height: calc(95vh - 100px);
+    }
+}
+
+/* High DPI Displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .app-title {
+        text-rendering: optimizeLegibility;
+    }
+    
+    .vehicle-card {
+        backface-visibility: hidden;
+        transform: translateZ(0);
+    }
+}
+
+/* Dark mode support (falls gewünscht) */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --text-primary: #ffffff;
+        --text-secondary: #b0b0b0;
+        --surface: rgba(255, 255, 255, 0.1);
+    }
+}
+
+/* Reduce motion für Benutzer die Animationen nicht mögen */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .vehicle-card {
+        transform: none !important;
+    }
+    
+    .primary-btn:hover,
+    .secondary-btn:hover {
+        transform: none !important;
+    }
+}
+
+/* Print Styles */
+@media print {
+    body {
+        background: white !important;
+        color: black !important;
+    }
+    
+    .hero-section {
+        background: white !important;
+    }
+    
+    .app-title {
+        color: black !important;
+    }
+    
+    .vehicle-card {
+        break-inside: avoid;
+        box-shadow: none !important;
+        border: 1px solid #ddd;
+    }
+    
+    .primary-btn,
+    .secondary-btn,
+    .icon-btn {
+        display: none !important;
     }
 }
