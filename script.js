@@ -2,6 +2,7 @@ class VehicleManager {
     constructor() {
         this.vehicles = this.loadVehicles();
         this.currentEditId = null;
+        this.pendingImportData = [];
         this.init();
     }
 
@@ -12,6 +13,7 @@ class VehicleManager {
     }
 
     bindEvents() {
+        // Existing events
         document.getElementById('addVehicleBtn').addEventListener('click', () => {
             this.showModal();
         });
@@ -28,6 +30,60 @@ class VehicleManager {
         document.getElementById('vehicleModal').addEventListener('click', (e) => {
             if (e.target === e.currentTarget) {
                 this.hideModal();
+            }
+        });
+
+        // Import events
+        document.getElementById('importBtn').addEventListener('click', () => {
+            this.showImportModal();
+        });
+
+        document.getElementById('closeImportModalBtn').addEventListener('click', () => {
+            this.hideImportModal();
+        });
+
+        document.getElementById('cancelImportBtn').addEventListener('click', () => {
+            this.hideImportModal();
+        });
+
+        document.getElementById('confirmImportBtn').addEventListener('click', () => {
+            this.confirmImport();
+        });
+
+        document.getElementById('importModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                this.hideImportModal();
+            }
+        });
+
+        // File upload events
+        const fileUploadArea = document.getElementById('fileUploadArea');
+        const fileInput = document.getElementById('csvFileInput');
+
+        fileUploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            this.handleFileSelect(e.target.files[0]);
+        });
+
+        // Drag and drop events
+        fileUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.add('dragover');
+        });
+
+        fileUploadArea.addEventListener('dragleave', () => {
+            fileUploadArea.classList.remove('dragover');
+        });
+
+        fileUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && (file.type === 'text/csv' || file.name.endsWith('.csv'))) {
+                this.handleFileSelect(file);
             }
         });
     }
@@ -58,6 +114,167 @@ class VehicleManager {
         document.getElementById('vehicleModal').style.display = 'none';
         document.body.style.overflow = 'auto';
         this.currentEditId = null;
+    }
+
+    showImportModal() {
+        document.getElementById('importModal').style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        this.resetImportModal();
+    }
+
+    hideImportModal() {
+        document.getElementById('importModal').style.display = 'none';
+        document.body.style.overflow = 'auto';
+        this.resetImportModal();
+    }
+
+    resetImportModal() {
+        document.getElementById('csvFileInput').value = '';
+        document.getElementById('importPreview').style.display = 'none';
+        document.getElementById('confirmImportBtn').style.display = 'none';
+        this.pendingImportData = [];
+    }
+
+    handleFileSelect(file) {
+        if (!file) return;
+
+        if (!file.name.endsWith('.csv') && file.type !== 'text/csv') {
+            alert('Bitte wählen Sie eine CSV-Datei aus.');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            this.parseCSV(e.target.result);
+        };
+        reader.readAsText(file, 'UTF-8');
+    }
+
+    parseCSV(csvText) {
+        const lines = csvText.split('\n').filter(line => line.trim() !== '');
+        const results = [];
+        let hasErrors = false;
+
+        lines.forEach((line, index) => {
+            const parts = line.split(';').map(part => part.trim());
+            
+            if (parts.length >= 4) {
+                const [name, pickupDate, totalMileage, contractDuration] = parts;
+                
+                const result = {
+                    originalLine: index + 1,
+                    name: name || '',
+                    pickupDate: pickupDate || '',
+                    totalMileage: parseInt(totalMileage) || 0,
+                    contractDuration: parseInt(contractDuration) || 0,
+                    errors: []
+                };
+
+                // Validation
+                if (!result.name) {
+                    result.errors.push('Fahrzeugname fehlt');
+                }
+                if (!result.pickupDate || !this.isValidDate(result.pickupDate)) {
+                    result.errors.push('Ungültiges Datum (Format: YYYY-MM-DD)');
+                }
+                if (result.totalMileage <= 0) {
+                    result.errors.push('Ungültige Fahrleistung');
+                }
+                if (result.contractDuration <= 0) {
+                    result.errors.push('Ungültige Vertragslaufzeit');
+                }
+
+                if (result.errors.length > 0) {
+                    hasErrors = true;
+                }
+
+                results.push(result);
+            } else if (line.trim() !== '') {
+                hasErrors = true;
+                results.push({
+                    originalLine: index + 1,
+                    name: '',
+                    pickupDate: '',
+                    totalMileage: 0,
+                    contractDuration: 0,
+                    errors: ['Unvollständige Datenzeile - benötigt 4 Felder getrennt durch Semikolon']
+                });
+            }
+        });
+
+        this.pendingImportData = results.filter(item => item.errors.length === 0);
+        this.showImportPreview(results, hasErrors);
+    }
+
+    isValidDate(dateString) {
+        const regex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!regex.test(dateString)) return false;
+        
+        const date = new Date(dateString);
+        return date instanceof Date && !isNaN(date);
+    }
+
+    showImportPreview(results, hasErrors) {
+        const previewDiv = document.getElementById('importPreview');
+        const previewContent = document.getElementById('previewContent');
+        const confirmBtn = document.getElementById('confirmImportBtn');
+        
+        let html = '';
+        
+        results.forEach(item => {
+            const hasError = item.errors.length > 0;
+            html += `
+                <div class="preview-item ${hasError ? 'error' : ''}">
+                    <strong>Zeile ${item.originalLine}: ${item.name || 'Unbenannt'}</strong>
+                    <div class="preview-details">
+                        Abholung: ${item.pickupDate}, Fahrleistung: ${item.totalMileage} km, Laufzeit: ${item.contractDuration} Monate
+                    </div>
+                    ${hasError ? `<div class="error-text">Fehler: ${item.errors.join(', ')}</div>` : ''}
+                </div>
+            `;
+        });
+
+        const validCount = results.filter(item => item.errors.length === 0).length;
+        const errorCount = results.filter(item => item.errors.length > 0).length;
+
+        html = `
+            <div style="margin-bottom: 20px; padding: 15px; background: #e3f2fd; border-radius: 8px;">
+                <strong>Import-Zusammenfassung:</strong><br>
+                ${validCount} gültige Datensätze, ${errorCount} fehlerhafte Datensätze
+            </div>
+            ${html}
+        `;
+
+        previewContent.innerHTML = html;
+        previewDiv.style.display = 'block';
+        
+        if (validCount > 0) {
+            confirmBtn.style.display = 'inline-block';
+            confirmBtn.textContent = `${validCount} Fahrzeuge importieren`;
+        } else {
+            confirmBtn.style.display = 'none';
+        }
+    }
+
+    confirmImport() {
+        if (this.pendingImportData.length === 0) return;
+
+        this.pendingImportData.forEach(item => {
+            const vehicle = {
+                id: Date.now() + Math.random(),
+                name: item.name,
+                pickupDate: item.pickupDate,
+                totalMileage: item.totalMileage,
+                contractDuration: item.contractDuration
+            };
+            this.vehicles.push(vehicle);
+        });
+
+        this.saveVehicles();
+        this.renderVehicles();
+        this.hideImportModal();
+
+        alert(`${this.pendingImportData.length} Fahrzeuge erfolgreich importiert!`);
     }
 
     saveVehicle() {
@@ -136,7 +353,7 @@ class VehicleManager {
                 <div class="empty-state">
                     <i class="material-icons">directions_car</i>
                     <h3>Keine Fahrzeuge vorhanden</h3>
-                    <p>Fügen Sie Ihr erstes Fahrzeug hinzu, um mit der Kilometerverfolgung zu beginnen.</p>
+                    <p>Fügen Sie Ihr erstes Fahrzeug hinzu oder importieren Sie eine CSV-Datei.</p>
                 </div>
             `;
             return;
@@ -252,6 +469,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             vehicleManager.hideModal();
+            vehicleManager.hideImportModal();
         }
     });
     

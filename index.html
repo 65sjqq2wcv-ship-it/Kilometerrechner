@@ -40,11 +40,17 @@
         <div class="hero-section">
             <div class="hero-content">
                 <h1 class="app-title">Kilometerrechner</h1>
-                <div class="app-version">v1.12</div>
-                <button id="addVehicleBtn" class="primary-btn">
-                    <i class="material-icons">add_circle</i>
-                    <span>Fahrzeug hinzufügen</span>
-                </button>
+                <div class="app-version">v1.13</div>
+                <div class="action-buttons">
+                    <button id="addVehicleBtn" class="primary-btn">
+                        <i class="material-icons">add_circle</i>
+                        <span>Fahrzeug hinzufügen</span>
+                    </button>
+                    <button id="importBtn" class="secondary-btn">
+                        <i class="material-icons">upload_file</i>
+                        <span>CSV Import</span>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -54,7 +60,7 @@
         </div>
     </div>
 
-    <!-- Modal bleibt gleich -->
+    <!-- Vehicle Modal -->
     <div id="vehicleModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -85,6 +91,43 @@
                     <button type="submit" class="btn btn-primary">Speichern</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Import Modal -->
+    <div id="importModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>CSV Import</h2>
+                <button class="close-btn" id="closeImportModalBtn">
+                    <i class="material-icons">close</i>
+                </button>
+            </div>
+            <div class="import-content">
+                <div class="import-info">
+                    <p><strong>CSV-Format:</strong></p>
+                    <p class="format-example">Fahrzeugname;Tag der Abholung;Fahrleistung;Laufzeit;</p>
+                    <p class="format-note">Beispiel: BMW 320i;2024-01-15;20000;36;</p>
+                </div>
+                
+                <div class="file-upload-area" id="fileUploadArea">
+                    <div class="upload-icon">
+                        <i class="material-icons">cloud_upload</i>
+                    </div>
+                    <p class="upload-text">CSV-Datei hier ablegen oder klicken zum Auswählen</p>
+                    <input type="file" id="csvFileInput" accept=".csv,.txt" hidden>
+                </div>
+                
+                <div id="importPreview" class="import-preview" style="display: none;">
+                    <h3>Import-Vorschau:</h3>
+                    <div id="previewContent"></div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" id="cancelImportBtn" class="btn btn-secondary">Abbrechen</button>
+                    <button type="button" id="confirmImportBtn" class="btn btn-primary" style="display: none;">Importieren</button>
+                </div>
+            </div>
         </div>
     </div>
 
