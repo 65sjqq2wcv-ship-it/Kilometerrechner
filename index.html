@@ -1,147 +1,207 @@
 <!DOCTYPE html>
 <html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
     <title>Kilometerrechner</title>
-    
-    <!-- PWA Meta Tags -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#667eea">
-    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#667eea">
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#667eea">
-    <meta name="msapplication-navbutton-color" content="#667eea">
-    <meta name="apple-mobile-web-app-status-bar-style" content="#667eea">
-    
-    <!-- iOS PWA Meta Tags - Erweitert -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Kilometerrechner">
-    <meta name="format-detection" content="telephone=no">
-    <meta name="apple-touch-fullscreen" content="yes">
-    
-    <!-- Additional iOS Meta Tags -->
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-status-bar-style" content="black-translucent">
-    
-    <!-- Android PWA -->
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="Kilometerrechner">
-    
-    <!-- Windows PWA -->
-    <meta name="msapplication-TileColor" content="#667eea">
-    <meta name="msapplication-tap-highlight" content="no">
-    
-    <!-- CSS und Fonts -->
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    
-    <!-- Icons -->
-    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-    <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
-</head>
-<body>
-    <div class="app-container">
-        <!-- Hero Section -->
-        <div class="hero-section">
-            <div class="hero-content">
-                <h1 class="app-title">Kilometerrechner</h1>
-                <div class="app-version">v1.15</div>
-                <div class="action-buttons">
-                    <button id="addVehicleBtn" class="primary-btn">
-                        <i class="material-icons">add_circle</i>
-                        <span>Fahrzeug hinzufügen</span>
-                    </button>
-                    <button id="importBtn" class="secondary-btn">
-                        <i class="material-icons">upload_file</i>
-                        <span>CSV Import</span>
-                    </button>
-                </div>
-            </div>
-        </div>
 
-        <!-- Content Section -->
-        <div class="content-section">
-            <div id="vehicleList" class="vehicle-grid"></div>
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#667eea" />
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: light)"
+      content="#667eea"
+    />
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: dark)"
+      content="#667eea"
+    />
+    <meta name="msapplication-navbutton-color" content="#667eea" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="#667eea" />
+
+    <!-- iOS PWA Meta Tags - Erweitert -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="Kilometerrechner" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="apple-touch-fullscreen" content="yes" />
+
+    <!-- Additional iOS Meta Tags -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <!-- Android PWA -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="Kilometerrechner" />
+
+    <!-- Windows PWA -->
+    <meta name="msapplication-TileColor" content="#667eea" />
+    <meta name="msapplication-tap-highlight" content="no" />
+
+    <!-- CSS und Fonts -->
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Hero Section -->
+      <div class="hero-section">
+        <div class="hero-content">
+          <h1 class="app-title">Kilometerrechner</h1>
+          <div class="app-version">v1.16</div>
+          <div class="action-buttons">
+            <button id="addVehicleBtn" class="primary-btn">
+              <i class="material-icons">add_circle</i>
+              <span>Fahrzeug hinzufügen</span>
+            </button>
+            <button id="importBtn" class="secondary-btn">
+              <i class="material-icons">upload_file</i>
+              <span>CSV Import</span>
+            </button>
+          </div>
         </div>
+      </div>
+
+      <!-- Content Section -->
+      <div class="content-section">
+        <div id="vehicleList" class="vehicle-grid"></div>
+      </div>
     </div>
 
     <!-- Vehicle Modal -->
     <div id="vehicleModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modalTitle">Fahrzeug hinzufügen</h2>
-                <button class="close-btn" id="closeModalBtn">
-                    <i class="material-icons">close</i>
-                </button>
-            </div>
-            <form id="vehicleForm">
-                <div class="form-group">
-                    <label for="vehicleName">Fahrzeugname</label>
-                    <input type="text" id="vehicleName" required placeholder="z.B. BMW 320i">
-                </div>
-                <div class="form-group">
-                    <label for="pickupDate">Tag der Abholung</label>
-                    <input type="date" id="pickupDate" required>
-                </div>
-                <div class="form-group">
-                    <label for="totalMileage">Gesamte Fahrleistung (km)</label>
-                    <input type="number" id="totalMileage" required min="1" placeholder="z.B. 20000">
-                </div>
-                <div class="form-group">
-                    <label for="contractDuration">Vertragslaufzeit (Monate)</label>
-                    <input type="number" id="contractDuration" required min="1" placeholder="z.B. 36">
-                </div>
-                <div class="form-actions">
-                    <button type="button" id="cancelBtn" class="btn btn-secondary">Abbrechen</button>
-                    <button type="submit" class="btn btn-primary">Speichern</button>
-                </div>
-            </form>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="modalTitle">Fahrzeug hinzufügen</h2>
+          <button class="close-btn" id="closeModalBtn">
+            <i class="material-icons">close</i>
+          </button>
         </div>
+        <form id="vehicleForm">
+          <div class="form-group">
+            <label for="vehicleName">Fahrzeugname</label>
+            <input
+              type="text"
+              id="vehicleName"
+              required
+              placeholder="z.B. BMW 320i"
+            />
+          </div>
+          <div class="form-group">
+            <label for="pickupDate">Tag der Abholung</label>
+            <input type="date" id="pickupDate" required />
+          </div>
+          <div class="form-group">
+            <label for="totalMileage">Gesamte Fahrleistung (km)</label>
+            <input
+              type="number"
+              id="totalMileage"
+              required
+              min="1"
+              placeholder="z.B. 20000"
+            />
+          </div>
+          <div class="form-group">
+            <label for="contractDuration">Vertragslaufzeit (Monate)</label>
+            <input
+              type="number"
+              id="contractDuration"
+              required
+              min="1"
+              placeholder="z.B. 36"
+            />
+          </div>
+          <div class="form-actions">
+            <button type="button" id="cancelBtn" class="btn btn-secondary">
+              Abbrechen
+            </button>
+            <button type="submit" class="btn btn-primary">Speichern</button>
+          </div>
+        </form>
+      </div>
     </div>
 
     <!-- Import Modal - Scrollbar Fix -->
     <div id="importModal" class="modal">
-        <div class="modal-content import-modal-content">
-            <div class="modal-header">
-                <h2>CSV Import</h2>
-                <button class="close-btn" id="closeImportModalBtn">
-                    <i class="material-icons">close</i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="import-content">
-                    <div class="import-info">
-                        <p><strong>CSV-Format:</strong></p>
-                        <p class="format-example">Fahrzeugname;Tag der Abholung;Fahrleistung;Laufzeit;</p>
-                        <p class="format-note">Beispiel: BMW 320i;2024-01-15;20000;36;</p>
-                    </div>
-                    
-                    <div class="file-upload-area" id="fileUploadArea">
-                        <div class="upload-icon">
-                            <i class="material-icons">cloud_upload</i>
-                        </div>
-                        <p class="upload-text">CSV-Datei hier ablegen oder klicken zum Auswählen</p>
-                        <input type="file" id="csvFileInput" accept=".csv,.txt" hidden>
-                    </div>
-                    
-                    <div id="importPreview" class="import-preview" style="display: none;">
-                        <h3>Import-Vorschau:</h3>
-                        <div id="previewContent"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <div class="form-actions">
-                    <button type="button" id="cancelImportBtn" class="btn btn-secondary">Abbrechen</button>
-                    <button type="button" id="confirmImportBtn" class="btn btn-primary" style="display: none;">Importieren</button>
-                </div>
-            </div>
+      <div class="modal-content import-modal-content">
+        <div class="modal-header">
+          <h2>CSV Import</h2>
+          <button class="close-btn" id="closeImportModalBtn">
+            <i class="material-icons">close</i>
+          </button>
         </div>
+        <div class="modal-body">
+          <div class="import-content">
+            <div class="import-info">
+              <p><strong>CSV-Format:</strong></p>
+              <p class="format-example">
+                Fahrzeugname;Tag der Abholung;Fahrleistung;Laufzeit;
+              </p>
+              <p class="format-note">Beispiel: BMW 320i;2024-01-15;20000;36;</p>
+            </div>
+
+            <div class="file-upload-area" id="fileUploadArea">
+              <div class="upload-icon">
+                <i class="material-icons">cloud_upload</i>
+              </div>
+              <p class="upload-text">
+                CSV-Datei hier ablegen oder klicken zum Auswählen
+              </p>
+              <input type="file" id="csvFileInput" accept=".csv,.txt" hidden />
+            </div>
+
+            <div
+              id="importPreview"
+              class="import-preview"
+              style="display: none"
+            >
+              <h3>Import-Vorschau:</h3>
+              <div id="previewContent"></div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div class="form-actions">
+            <button
+              type="button"
+              id="cancelImportBtn"
+              class="btn btn-secondary"
+            >
+              Abbrechen
+            </button>
+            <button
+              type="button"
+              id="confirmImportBtn"
+              class="btn btn-primary"
+              style="display: none"
+            >
+              Importieren
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script src="script.js"></script>
-</body>
+  </body>
 </html>
