@@ -10,6 +10,8 @@ class VehicleManager {
     this.bindEvents();
     this.renderVehicles();
     this.updateVehiclesDaily();
+    this.initOfflineSupport();
+    this.initServiceWorkerUpdates();
   }
 
   bindEvents() {
@@ -396,9 +398,10 @@ class VehicleManager {
         return `
                 <div class="vehicle-card">
                     <div class="vehicle-header">
-                        <h3><i class="material-icons">directions_car</i>${
-                          vehicle.name
-                        }</h3>
+                        <h3>
+                            <i class="material-icons">directions_car</i>
+                            ${vehicle.name}
+                        </h3>
                         <div class="vehicle-actions">
                             <button class="icon-btn" onclick="vehicleManager.showModal(${JSON.stringify(
                               vehicle
@@ -414,61 +417,58 @@ class VehicleManager {
                     </div>
                     <div class="vehicle-info">
                         <div class="info-row">
-                            <div class="info-label">
-                                <i class="material-icons">event</i>
-                                Tag der Abholung
-                            </div>
-                            <div class="info-value">
-                                ${new Date(
-                                  vehicle.pickupDate
-                                ).toLocaleDateString("de-DE")}
-                            </div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label">
+                            <span class="info-label">
                                 <i class="material-icons">today</i>
-                                Tage bis heute
-                            </div>
-                            <div class="info-value">
-                                ${data.daysSincePickup}
-                            </div>
+                                Abholung
+                            </span>
+                            <span class="info-value">${new Date(
+                              vehicle.pickupDate
+                            ).toLocaleDateString("de-DE")}</span>
                         </div>
                         <div class="info-row">
-                            <div class="info-label">
-                                <i class="material-icons">straighten</i>
-                                Gesamte Fahrleistung
-                            </div>
-                            <div class="info-value">
-                                ${
-                                  vehicle.totalMileage.toLocaleString("de-DE") +
-                                  " km"
-                                }
-                            </div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label">
+                            <span class="info-label">
                                 <i class="material-icons">speed</i>
-                                Fahrleistung pro Tag
-                            </div>
-                            <div class="info-value">
-                                ${data.kmPerDay + " km"}
-                            </div>
+                                Tage seit Abholung
+                            </span>
+                            <span class="info-value">${
+                              data.daysSincePickup
+                            } Tage</span>
                         </div>
                         <div class="info-row">
-                            <div class="info-label">
+                            <span class="info-label">
+                                <i class="material-icons">straighten</i>
+                                Gesamtlaufleistung
+                            </span>
+                            <span class="info-value">${vehicle.totalMileage.toLocaleString()} km</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">
+                                <i class="material-icons">calculate</i>
+                                km pro Tag
+                            </span>
+                            <span class="info-value">${data.kmPerDay} km</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">
                                 <i class="material-icons">timeline</i>
-                                Fahrleistung bis heute
-                            </div>
-                            <div class="info-value">
-                                ${data.kmToDate.toLocaleString("de-DE") + " km"}
-                            </div>
+                                km bis heute
+                            </span>
+                            <span class="info-value ${statusClass}">${data.kmToDate.toLocaleString()} km</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">
+                                <i class="material-icons">schedule</i>
+                                Vertragslaufzeit
+                            </span>
+                            <span class="info-value">${
+                              vehicle.contractDuration
+                            } Monate</span>
                         </div>
                     </div>
                     <div class="progress-bar">
-                        <div class="progress-fill ${statusClass}" style="width: ${Math.min(
-          data.progressPercentage,
-          100
-        )}%"></div>
+                        <div class="progress-fill ${statusClass}" style="width: ${
+          data.progressPercentage
+        }%"></div>
                     </div>
                 </div>
             `;
@@ -490,6 +490,99 @@ class VehicleManager {
 
   saveVehicles() {
     localStorage.setItem("leasingVehicles", JSON.stringify(this.vehicles));
+    this.registerBackgroundSync();
+  }
+
+  // Offline Support Funktionen
+  initOfflineSupport() {
+    // Online/Offline Status überwachen
+    window.addEventListener('online', () => this.handleOnlineStatus(true));
+    window.addEventListener('offline', () => this.handleOnlineStatus(false));
+    
+    // Service Worker Messages
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        this.handleServiceWorkerMessage(event.data);
+      });
+    }
+    
+    // Initial Status setzen
+    this.handleOnlineStatus(navigator.onLine);
+  }
+
+  handleOnlineStatus(isOnline) {
+    const statusIndicator = this.createStatusIndicator();
+    
+    if (isOnline) {
+      statusIndicator.textContent = '';
+      statusIndicator.className = 'online-status';
+      console.log('[APP] Online-Modus');
+    } else {
+      statusIndicator.textContent = '📱 Offline-Modus';
+      statusIndicator.className = 'offline-status';
+      console.log('[APP] Offline-Modus - Daten werden lokal gespeichert');
+    }
+  }
+
+  createStatusIndicator() {
+    let indicator = document.getElementById('connection-status');
+    if (!indicator) {
+      indicator = document.createElement('div');
+      indicator.id = 'connection-status';
+      document.querySelector('.hero-section').appendChild(indicator);
+    }
+    return indicator;
+  }
+
+  handleServiceWorkerMessage(data) {
+    switch (data.type) {
+      case 'ONLINE':
+        this.handleOnlineStatus(true);
+        break;
+      case 'OFFLINE':
+        this.handleOnlineStatus(false);
+        break;
+      case 'DATA_SYNCED':
+        console.log('[APP] Daten synchronisiert');
+        break;
+    }
+  }
+
+  // Service Worker Update-Handler
+  initServiceWorkerUpdates() {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then((registration) => {
+        // Auf Updates prüfen
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              this.showUpdateNotification();
+            }
+          });
+        });
+      });
+    }
+  }
+
+  showUpdateNotification() {
+    const updateBar = document.createElement('div');
+    updateBar.className = 'update-notification';
+    updateBar.innerHTML = `
+      <span>Neue Version verfügbar!</span>
+      <button onclick="window.location.reload()">Aktualisieren</button>
+      <button onclick="this.parentElement.remove()">×</button>
+    `;
+    document.body.insertBefore(updateBar, document.body.firstChild);
+  }
+
+  // Background Sync registrieren
+  registerBackgroundSync() {
+    if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+      navigator.serviceWorker.ready.then((registration) => {
+        registration.sync.register('background-sync-vehicles');
+      }).catch(err => console.log('Background sync not supported'));
+    }
   }
 }
 
