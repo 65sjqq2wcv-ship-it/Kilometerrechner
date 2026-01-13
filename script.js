@@ -446,7 +446,7 @@ class VehicleManager {
                                 <i class="material-icons">calculate</i>
                                 km pro Tag
                             </span>
-                            <span class="info-value">${data.kmPerDay} km</span>
+                            <span class="info-value">${data.kmPerDay.toLocaleString('de-DE')} km</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">
