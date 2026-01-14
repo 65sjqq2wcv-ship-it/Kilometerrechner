@@ -22,7 +22,7 @@ class VehicleManager {
 
     document.getElementById("vehicleForm").addEventListener("submit", (e) => {
       e.preventDefault();
-      this.saveVehicle();
+      this.saveVehicle();f
     });
 
     document.getElementById("cancelBtn").addEventListener("click", () => {
@@ -446,7 +446,7 @@ class VehicleManager {
                                 <i class="material-icons">calculate</i>
                                 km pro Tag
                             </span>
-                            <span class="info-value">${data.kmPerDay.toLocaleString('de-DE')} km</span>
+                            <span class="info-value">${Number(data.kmPerDay).toLocaleString('de-DE')} km</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">
