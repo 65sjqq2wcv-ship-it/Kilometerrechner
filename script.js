@@ -1,9 +1,13 @@
+// Deutsche Lokalisierung als Standard
+const LOCALE = 'de-DE';
+
 class VehicleManager {
   constructor() {
     this.vehicles = this.loadVehicles();
     this.currentEditId = null;
     this.pendingImportData = [];
     this.init();
+    this.setGermanLocale();
   }
 
   init() {
@@ -14,6 +18,13 @@ class VehicleManager {
     this.initServiceWorkerUpdates();
   }
 
+  setGermanLocale() {
+    // Für alle Zahlenformatierungen deutsche Einstellungen verwenden
+    Number.prototype.toLocaleString = function (locales, options) {
+      return Number.prototype.toLocaleString.call(this, LOCALE, options);
+    };
+  }
+
   bindEvents() {
     // Existing events
     document.getElementById("addVehicleBtn").addEventListener("click", () => {
@@ -22,7 +33,7 @@ class VehicleManager {
 
     document.getElementById("vehicleForm").addEventListener("submit", (e) => {
       e.preventDefault();
-      this.saveVehicle();f
+      this.saveVehicle(); f
     });
 
     document.getElementById("cancelBtn").addEventListener("click", () => {
@@ -234,21 +245,18 @@ class VehicleManager {
       const hasError = item.errors.length > 0;
       html += `
                 <div class="preview-item ${hasError ? "error" : ""}">
-                    <strong>Zeile ${item.originalLine}: ${
-        item.name || "Unbenannt"
-      }</strong>
+                    <strong>Zeile ${item.originalLine}: ${item.name || "Unbenannt"
+        }</strong>
                     <div class="preview-details">
-                        Abholung: ${item.pickupDate}, Fahrleistung: ${
-        item.totalMileage
-      } km, Laufzeit: ${item.contractDuration} Monate
+                        Abholung: ${item.pickupDate}, Fahrleistung: ${item.totalMileage
+        } km, Laufzeit: ${item.contractDuration} Monate
                     </div>
-                    ${
-                      hasError
-                        ? `<div class="error-text">Fehler: ${item.errors.join(
-                            ", "
-                          )}</div>`
-                        : ""
-                    }
+                    ${hasError
+          ? `<div class="error-text">Fehler: ${item.errors.join(
+            ", "
+          )}</div>`
+          : ""
+        }
                 </div>
             `;
     });
@@ -404,13 +412,12 @@ class VehicleManager {
                         </h3>
                         <div class="vehicle-actions">
                             <button class="icon-btn" onclick="vehicleManager.showModal(${JSON.stringify(
-                              vehicle
-                            ).replace(/"/g, "&quot;")})">
+          vehicle
+        ).replace(/"/g, "&quot;")})">
                                 <i class="material-icons">edit</i>
                             </button>
-                            <button class="icon-btn" onclick="vehicleManager.deleteVehicle(${
-                              vehicle.id
-                            })">
+                            <button class="icon-btn" onclick="vehicleManager.deleteVehicle(${vehicle.id
+          })">
                                 <i class="material-icons">delete</i>
                             </button>
                         </div>
@@ -422,17 +429,16 @@ class VehicleManager {
                                 Abholung
                             </span>
                             <span class="info-value">${new Date(
-                              vehicle.pickupDate
-                            ).toLocaleDateString("de-DE")}</span>
+            vehicle.pickupDate
+          ).toLocaleDateString("de-DE")}</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">
                                 <i class="material-icons">speed</i>
                                 Tage seit Abholung
                             </span>
-                            <span class="info-value">${
-                              data.daysSincePickup
-                            } Tage</span>
+                            <span class="info-value">${data.daysSincePickup
+          } Tage</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">
@@ -446,7 +452,7 @@ class VehicleManager {
                                 <i class="material-icons">calculate</i>
                                 km pro Tag
                             </span>
-                            <span class="info-value">${Number(data.kmPerDay).toString().replace('.', ',')} km</span>
+                           <span class="info-value">${Number(data.kmPerDay).toLocaleString('de-DE', { maximumFractionDigits: 2 })} km</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">
@@ -460,15 +466,13 @@ class VehicleManager {
                                 <i class="material-icons">schedule</i>
                                 Vertragslaufzeit
                             </span>
-                            <span class="info-value">${
-                              vehicle.contractDuration
-                            } Monate</span>
+                            <span class="info-value">${vehicle.contractDuration
+          } Monate</span>
                         </div>
                     </div>
                     <div class="progress-bar">
-                        <div class="progress-fill ${statusClass}" style="width: ${
-          data.progressPercentage
-        }%"></div>
+                        <div class="progress-fill ${statusClass}" style="width: ${data.progressPercentage
+          }%"></div>
                     </div>
                 </div>
             `;
@@ -498,21 +502,21 @@ class VehicleManager {
     // Online/Offline Status überwachen
     window.addEventListener('online', () => this.handleOnlineStatus(true));
     window.addEventListener('offline', () => this.handleOnlineStatus(false));
-    
+
     // Service Worker Messages
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.addEventListener('message', (event) => {
         this.handleServiceWorkerMessage(event.data);
       });
     }
-    
+
     // Initial Status setzen
     this.handleOnlineStatus(navigator.onLine);
   }
 
   handleOnlineStatus(isOnline) {
     const statusIndicator = this.createStatusIndicator();
-    
+
     if (isOnline) {
       statusIndicator.textContent = '';
       statusIndicator.className = 'online-status';
