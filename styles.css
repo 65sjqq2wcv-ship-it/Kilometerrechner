@@ -765,3 +765,74 @@ body {
   right: 4px;
   font-size: 12px;
 }
+
+/* Backup/Restore Section Styles */
+.backup-section, .restore-section {
+  margin-bottom: 20px;
+}
+
+.backup-section h3, .restore-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.backup-section h3 i, .restore-section h3 i {
+  font-size: 20px;
+}
+
+.backup-section p, .restore-section p {
+  margin-bottom: 16px;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+/* Export Button zentrieren */
+.backup-section {
+  text-align: center;
+}
+
+#exportBtn {
+  transition: all 0.3s ease;
+  display: inline-flex;
+  margin: 0 auto;
+}
+
+#exportBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Form Actions im Backup Modal zentrieren */
+.import-modal-content .form-actions {
+  justify-content: center;
+  gap: 16px;
+}
+
+/* Import Info erweitert für JSON */
+.import-info {
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  text-align: left; /* Text in der Info-Box links ausrichten */
+}
+
+.import-info p {
+  margin: 0;
+  color: #92400e;
+  font-size: 0.875rem;
+}
+
+.import-info strong {
+  color: #78350f;
+}
+
+/* Restore Section Text linksbündig lassen */
+.restore-section {
+  text-align: left;
+}

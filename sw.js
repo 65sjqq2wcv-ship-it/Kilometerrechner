@@ -1,6 +1,7 @@
-const CACHE_NAME = "kilometerrechner-v3";
-const STATIC_CACHE = "static-v3";
-const DYNAMIC_CACHE = "dynamic-v2";
+const APP_VERSION = "1.22";
+const CACHE_NAME = `kilometerrechner-v${APP_VERSION}`;
+const STATIC_CACHE = `kilometerrechner-static-v${APP_VERSION}`;
+const DYNAMIC_CACHE = `kilometerrechner-dynamic-v${APP_VERSION}`;
 
 // Alle wichtigen Ressourcen für vollständige Offline-Funktionalität
 const urlsToCache = [

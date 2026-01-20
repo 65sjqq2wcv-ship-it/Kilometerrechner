@@ -5,7 +5,7 @@ class VehicleManager {
   constructor() {
     this.vehicles = this.loadVehicles();
     this.currentEditId = null;
-    this.pendingImportData = [];
+    this.pendingRestoreData = [];
     this.init();
     this.setGermanLocale();
   }
@@ -33,7 +33,7 @@ class VehicleManager {
 
     document.getElementById("vehicleForm").addEventListener("submit", (e) => {
       e.preventDefault();
-      this.saveVehicle(); f
+      this.saveVehicle();
     });
 
     document.getElementById("cancelBtn").addEventListener("click", () => {
@@ -46,36 +46,41 @@ class VehicleManager {
       }
     });
 
-    // Import events
-    document.getElementById("importBtn").addEventListener("click", () => {
-      this.showImportModal();
+    // Backup/Restore events
+    document.getElementById("backupBtn").addEventListener("click", () => {
+      this.showBackupModal();
     });
 
     document
-      .getElementById("closeImportModalBtn")
+      .getElementById("closeBackupModalBtn")
       .addEventListener("click", () => {
-        this.hideImportModal();
+        this.hideBackupModal();
       });
 
-    document.getElementById("cancelImportBtn").addEventListener("click", () => {
-      this.hideImportModal();
+    document.getElementById("cancelBackupBtn").addEventListener("click", () => {
+      this.hideBackupModal();
     });
 
     document
-      .getElementById("confirmImportBtn")
+      .getElementById("confirmRestoreBtn")
       .addEventListener("click", () => {
-        this.confirmImport();
+        this.confirmRestore();
       });
 
-    document.getElementById("importModal").addEventListener("click", (e) => {
+    document.getElementById("backupModal").addEventListener("click", (e) => {
       if (e.target === e.currentTarget) {
-        this.hideImportModal();
+        this.hideBackupModal();
       }
+    });
+
+    // Export button
+    document.getElementById("exportBtn").addEventListener("click", () => {
+      this.exportBackup();
     });
 
     // File upload events
     const fileUploadArea = document.getElementById("fileUploadArea");
-    const fileInput = document.getElementById("csvFileInput");
+    const fileInput = document.getElementById("jsonFileInput");
 
     fileUploadArea.addEventListener("click", () => {
       fileInput.click();
@@ -99,7 +104,7 @@ class VehicleManager {
       e.preventDefault();
       fileUploadArea.classList.remove("dragover");
       const file = e.dataTransfer.files[0];
-      if (file && (file.type === "text/csv" || file.name.endsWith(".csv"))) {
+      if (file && (file.type === "application/json" || file.name.endsWith(".json"))) {
         this.handleFileSelect(file);
       }
     });
@@ -134,96 +139,123 @@ class VehicleManager {
     this.currentEditId = null;
   }
 
-  showImportModal() {
-    document.getElementById("importModal").style.display = "block";
+  showBackupModal() {
+    document.getElementById("backupModal").style.display = "block";
     document.body.style.overflow = "hidden";
-    this.resetImportModal();
+    this.resetBackupModal();
   }
 
-  hideImportModal() {
-    document.getElementById("importModal").style.display = "none";
+  hideBackupModal() {
+    document.getElementById("backupModal").style.display = "none";
     document.body.style.overflow = "auto";
-    this.resetImportModal();
+    this.resetBackupModal();
   }
 
-  resetImportModal() {
-    document.getElementById("csvFileInput").value = "";
-    document.getElementById("importPreview").style.display = "none";
-    document.getElementById("confirmImportBtn").style.display = "none";
-    this.pendingImportData = [];
+  resetBackupModal() {
+    document.getElementById("jsonFileInput").value = "";
+    document.getElementById("restorePreview").style.display = "none";
+    document.getElementById("confirmRestoreBtn").style.display = "none";
+    this.pendingRestoreData = [];
   }
 
+  // JSON Export Funktionalität
+  exportBackup() {
+    const backupData = {
+      version: "1.21",
+      exportDate: new Date().toISOString(),
+      vehicles: this.vehicles
+    };
+
+    const dataStr = JSON.stringify(backupData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(dataBlob);
+    link.download = `kilometerrechner-backup-${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+
+    URL.revokeObjectURL(link.href);
+
+    // Kurze Bestätigung anzeigen
+    const exportBtn = document.getElementById("exportBtn");
+    const originalText = exportBtn.innerHTML;
+    exportBtn.innerHTML = '<i class="material-icons">check</i> Backup erstellt!';
+    exportBtn.style.background = 'var(--accent-color)';
+
+    setTimeout(() => {
+      exportBtn.innerHTML = originalText;
+      exportBtn.style.background = 'var(--primary-color)';
+    }, 2000);
+  }
+
+  // JSON Import Funktionalität
   handleFileSelect(file) {
     if (!file) return;
 
-    if (!file.name.endsWith(".csv") && file.type !== "text/csv") {
-      alert("Bitte wählen Sie eine CSV-Datei aus.");
+    if (!file.name.endsWith(".json") && file.type !== "application/json") {
+      alert("Bitte wählen Sie eine JSON-Datei aus.");
       return;
     }
 
     const reader = new FileReader();
     reader.onload = (e) => {
-      this.parseCSV(e.target.result);
+      this.parseJSON(e.target.result);
     };
     reader.readAsText(file, "UTF-8");
   }
 
-  parseCSV(csvText) {
-    const lines = csvText.split("\n").filter((line) => line.trim() !== "");
+  parseJSON(jsonText) {
+    let backupData;
+    try {
+      backupData = JSON.parse(jsonText);
+    } catch (error) {
+      alert("Fehler beim Lesen der JSON-Datei: Ungültiges Format");
+      return;
+    }
+
+    // Validierung der Backup-Struktur
+    if (!backupData.vehicles || !Array.isArray(backupData.vehicles)) {
+      alert("Ungültiges Backup-Format: Keine Fahrzeugdaten gefunden");
+      return;
+    }
+
     const results = [];
     let hasErrors = false;
 
-    lines.forEach((line, index) => {
-      const parts = line.split(";").map((part) => part.trim());
+    backupData.vehicles.forEach((vehicle, index) => {
+      const result = {
+        index: index + 1,
+        name: vehicle.name || "",
+        pickupDate: vehicle.pickupDate || "",
+        totalMileage: vehicle.totalMileage || 0,
+        contractDuration: vehicle.contractDuration || 0,
+        id: vehicle.id,
+        errors: [],
+      };
 
-      if (parts.length >= 4) {
-        const [name, pickupDate, totalMileage, contractDuration] = parts;
-
-        const result = {
-          originalLine: index + 1,
-          name: name || "",
-          pickupDate: pickupDate || "",
-          totalMileage: parseInt(totalMileage) || 0,
-          contractDuration: parseInt(contractDuration) || 0,
-          errors: [],
-        };
-
-        // Validation
-        if (!result.name) {
-          result.errors.push("Fahrzeugname fehlt");
-        }
-        if (!result.pickupDate || !this.isValidDate(result.pickupDate)) {
-          result.errors.push("Ungültiges Datum (Format: YYYY-MM-DD)");
-        }
-        if (result.totalMileage <= 0) {
-          result.errors.push("Ungültige Fahrleistung");
-        }
-        if (result.contractDuration <= 0) {
-          result.errors.push("Ungültige Vertragslaufzeit");
-        }
-
-        if (result.errors.length > 0) {
-          hasErrors = true;
-        }
-
-        results.push(result);
-      } else if (line.trim() !== "") {
-        hasErrors = true;
-        results.push({
-          originalLine: index + 1,
-          name: "",
-          pickupDate: "",
-          totalMileage: 0,
-          contractDuration: 0,
-          errors: [
-            "Unvollständige Datenzeile - benötigt 4 Felder getrennt durch Semikolon",
-          ],
-        });
+      // Validation
+      if (!result.name) {
+        result.errors.push("Fahrzeugname fehlt");
       }
+      if (!result.pickupDate || !this.isValidDate(result.pickupDate)) {
+        result.errors.push("Ungültiges Datum (Format: YYYY-MM-DD)");
+      }
+      if (result.totalMileage <= 0) {
+        result.errors.push("Ungültige Fahrleistung");
+      }
+      if (result.contractDuration <= 0) {
+        result.errors.push("Ungültige Vertragslaufzeit");
+      }
+
+      if (result.errors.length > 0) {
+        hasErrors = true;
+      }
+
+      results.push(result);
     });
 
-    this.pendingImportData = results.filter((item) => item.errors.length === 0);
-    this.showImportPreview(results, hasErrors);
+    this.pendingRestoreData = results.filter((item) => item.errors.length === 0);
+    this.showRestorePreview(results, hasErrors, backupData);
   }
 
   isValidDate(dateString) {
@@ -234,10 +266,10 @@ class VehicleManager {
     return date instanceof Date && !isNaN(date);
   }
 
-  showImportPreview(results, hasErrors) {
-    const previewDiv = document.getElementById("importPreview");
+  showRestorePreview(results, hasErrors, backupData) {
+    const previewDiv = document.getElementById("restorePreview");
     const previewContent = document.getElementById("previewContent");
-    const confirmBtn = document.getElementById("confirmImportBtn");
+    const confirmBtn = document.getElementById("confirmRestoreBtn");
 
     let html = "";
 
@@ -245,7 +277,7 @@ class VehicleManager {
       const hasError = item.errors.length > 0;
       html += `
                 <div class="preview-item ${hasError ? "error" : ""}">
-                    <strong>Zeile ${item.originalLine}: ${item.name || "Unbenannt"
+                    <strong>Fahrzeug ${item.index}: ${item.name || "Unbenannt"
         }</strong>
                     <div class="preview-details">
                         Abholung: ${item.pickupDate}, Fahrleistung: ${item.totalMileage
@@ -266,10 +298,16 @@ class VehicleManager {
     ).length;
     const errorCount = results.filter((item) => item.errors.length > 0).length;
 
+    const backupInfo = backupData.exportDate
+      ? `<br>Backup vom: ${new Date(backupData.exportDate).toLocaleDateString('de-DE')}`
+      : '';
+
     html = `
             <div style="margin-bottom: 20px; padding: 15px; background: #e3f2fd; border-radius: 8px;">
-                <strong>Import-Zusammenfassung:</strong><br>
-                ${validCount} gültige Datensätze, ${errorCount} fehlerhafte Datensätze
+                <strong>Restore-Zusammenfassung:</strong><br>
+                ${validCount} gültige Fahrzeuge, ${errorCount} fehlerhafte Datensätze
+                ${backupInfo}
+                <br><strong>Warnung:</strong> Dies überschreibt alle aktuellen Daten!
             </div>
             ${html}
         `;
@@ -279,31 +317,33 @@ class VehicleManager {
 
     if (validCount > 0) {
       confirmBtn.style.display = "inline-block";
-      confirmBtn.textContent = `${validCount} Fahrzeuge importieren`;
+      confirmBtn.textContent = `${validCount} Fahrzeuge wiederherstellen`;
     } else {
       confirmBtn.style.display = "none";
     }
   }
 
-  confirmImport() {
-    if (this.pendingImportData.length === 0) return;
+  confirmRestore() {
+    if (this.pendingRestoreData.length === 0) return;
 
-    this.pendingImportData.forEach((item) => {
-      const vehicle = {
-        id: Date.now() + Math.random(),
-        name: item.name,
-        pickupDate: item.pickupDate,
-        totalMileage: item.totalMileage,
-        contractDuration: item.contractDuration,
-      };
-      this.vehicles.push(vehicle);
-    });
+    if (!confirm(`Sind Sie sicher? Dies überschreibt alle aktuellen Daten!\n\n${this.pendingRestoreData.length} Fahrzeuge werden wiederhergestellt.`)) {
+      return;
+    }
+
+    // Alle aktuellen Daten löschen und neue Daten laden
+    this.vehicles = this.pendingRestoreData.map(item => ({
+      id: item.id || Date.now() + Math.random(),
+      name: item.name,
+      pickupDate: item.pickupDate,
+      totalMileage: item.totalMileage,
+      contractDuration: item.contractDuration,
+    }));
 
     this.saveVehicles();
     this.renderVehicles();
-    this.hideImportModal();
+    this.hideBackupModal();
 
-    alert(`${this.pendingImportData.length} Fahrzeuge erfolgreich importiert!`);
+    alert(`${this.pendingRestoreData.length} Fahrzeuge erfolgreich wiederhergestellt!`);
   }
 
   saveVehicle() {
@@ -392,7 +432,7 @@ class VehicleManager {
                 <div class="empty-state">
                     <i class="material-icons">directions_car</i>
                     <h3>Keine Fahrzeuge vorhanden</h3>
-                    <p>Fügen Sie Ihr erstes Fahrzeug hinzu oder importieren Sie eine CSV-Datei.</p>
+                    <p>Fügen Sie Ihr erstes Fahrzeug hinzu oder stellen Sie ein Backup wieder her.</p>
                 </div>
             `;
       return;
@@ -406,14 +446,12 @@ class VehicleManager {
         return `
                 <div class="vehicle-card">
                     <div class="vehicle-header">
-                        <h3>
-                            <i class="material-icons">directions_car</i>
-                            ${vehicle.name}
-                        </h3>
+                        <h3><i class="material-icons">directions_car</i>${vehicle.name
+          }</h3>
                         <div class="vehicle-actions">
                             <button class="icon-btn" onclick="vehicleManager.showModal(${JSON.stringify(
-          vehicle
-        ).replace(/"/g, "&quot;")})">
+            vehicle
+          ).replace(/"/g, "&quot;")})">
                                 <i class="material-icons">edit</i>
                             </button>
                             <button class="icon-btn" onclick="vehicleManager.deleteVehicle(${vehicle.id
@@ -425,54 +463,62 @@ class VehicleManager {
                     <div class="vehicle-info">
                         <div class="info-row">
                             <span class="info-label">
-                                <i class="material-icons">today</i>
+                                <i class="material-icons">event</i>
                                 Abholung
                             </span>
                             <span class="info-value">${new Date(
             vehicle.pickupDate
-          ).toLocaleDateString("de-DE")}</span>
+          ).toLocaleDateString(LOCALE)}</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">
                                 <i class="material-icons">speed</i>
-                                Tage seit Abholung
+                                Fahrleistung
                             </span>
-                            <span class="info-value">${data.daysSincePickup
-          } Tage</span>
+                            <span class="info-value">${vehicle.totalMileage.toLocaleString(
+            LOCALE
+          )} km</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">
+                                <i class="material-icons">schedule</i>
+                                Laufzeit
+                            </span>
+                            <span class="info-value">${vehicle.contractDuration
+          } Monate</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">
+                                <i class="material-icons">today</i>
+                                Vergangene Tage
+                            </span>
+                            <span class="info-value">${data.daysSincePickup} / ${data.contractDays
+          }</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">
                                 <i class="material-icons">straighten</i>
-                                Gesamtlaufleistung
+                                km/Tag
                             </span>
-                            <span class="info-value">${vehicle.totalMileage.toLocaleString()} km</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">
-                                <i class="material-icons">calculate</i>
-                                km pro Tag
-                            </span>
-                           <span class="info-value">${Number(data.kmPerDay).toLocaleString('de-DE', { maximumFractionDigits: 2 })} km</span>
+                            <span class="info-value">${data.kmPerDay.toLocaleString(
+            LOCALE
+          )}</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">
                                 <i class="material-icons">timeline</i>
                                 km bis heute
                             </span>
-                            <span class="info-value ${statusClass}">${data.kmToDate.toLocaleString()} km</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">
-                                <i class="material-icons">schedule</i>
-                                Vertragslaufzeit
-                            </span>
-                            <span class="info-value">${vehicle.contractDuration
-          } Monate</span>
+                            <span class="info-value ${statusClass}">${data.kmToDate.toLocaleString(
+            LOCALE
+          )} km</span>
                         </div>
                     </div>
                     <div class="progress-bar">
-                        <div class="progress-fill ${statusClass}" style="width: ${data.progressPercentage
-          }%"></div>
+                        <div class="progress-fill ${statusClass}" style="width: ${Math.min(
+            data.progressPercentage,
+            100
+          )}%"></div>
                     </div>
                 </div>
             `;
@@ -590,6 +636,9 @@ class VehicleManager {
   }
 }
 
+// Globale Instanz erstellen
+let vehicleManager;
+
 // Service Worker für PWA
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
@@ -611,14 +660,18 @@ document.addEventListener("DOMContentLoaded", function () {
   // Close modal mit Escape-Taste
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") {
-      vehicleManager.hideModal();
-      vehicleManager.hideImportModal();
+      if (vehicleManager) {
+        vehicleManager.hideModal();
+        vehicleManager.hideBackupModal();
+      }
     }
   });
 
   // Close button event
   document.getElementById("closeModalBtn")?.addEventListener("click", () => {
-    vehicleManager.hideModal();
+    if (vehicleManager) {
+      vehicleManager.hideModal();
+    }
   });
 
   // Smooth animations für Fahrzeugkarten
@@ -657,7 +710,26 @@ document.addEventListener("DOMContentLoaded", function () {
   const style = document.createElement("style");
   style.textContent = animationCSS;
   document.head.appendChild(style);
-});
 
-// Initialize the app
-const vehicleManager = new VehicleManager();
+  // Initialize the app nach DOM loading
+  vehicleManager = new VehicleManager();
+
+  // Observer für neue Fahrzeugkarten aktivieren
+  const vehicleList = document.getElementById('vehicleList');
+  if (vehicleList) {
+    const vehicleObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === 1 && node.classList.contains('vehicle-card')) {
+            observer.observe(node);
+          }
+        });
+      });
+    });
+
+    vehicleObserver.observe(vehicleList, {
+      childList: true,
+      subtree: true
+    });
+  }
+});

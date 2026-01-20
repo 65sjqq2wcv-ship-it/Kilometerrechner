@@ -67,15 +67,15 @@
       <div class="hero-section">
         <div class="hero-content">
           <h1 class="app-title">Kilometerrechner</h1>
-          <div class="app-version">v1.21</div>
+          <div class="app-version">v1.22</div>
           <div class="action-buttons">
             <button id="addVehicleBtn" class="primary-btn">
               <i class="material-icons">add_circle</i>
               <span>Fahrzeug hinzufügen</span>
             </button>
-            <button id="importBtn" class="secondary-btn">
-              <i class="material-icons">upload_file</i>
-              <span>CSV Import</span>
+            <button id="backupBtn" class="secondary-btn">
+              <i class="material-icons">backup</i>
+              <span>Backup/Restore</span>
             </button>
           </div>
         </div>
@@ -140,42 +140,54 @@
       </div>
     </div>
 
-    <!-- Import Modal - Scrollbar Fix -->
-    <div id="importModal" class="modal">
+    <!-- Backup/Restore Modal -->
+    <div id="backupModal" class="modal">
       <div class="modal-content import-modal-content">
         <div class="modal-header">
-          <h2>CSV Import</h2>
-          <button class="close-btn" id="closeImportModalBtn">
+          <h2>Backup/Restore</h2>
+          <button class="close-btn" id="closeBackupModalBtn">
             <i class="material-icons">close</i>
           </button>
         </div>
         <div class="modal-body">
           <div class="import-content">
-            <div class="import-info">
-              <p><strong>CSV-Format:</strong></p>
-              <p class="format-example">
-                Fahrzeugname;Tag der Abholung;Fahrleistung;Laufzeit;
-              </p>
-              <p class="format-note">Beispiel: BMW 320i;2024-01-15;20000;36;</p>
+            <!-- Export Section -->
+            <div class="backup-section">
+              <h3><i class="material-icons">download</i> Backup erstellen</h3>
+              <p>Exportieren Sie alle Ihre Fahrzeugdaten als JSON-Datei:</p>
+              <button id="exportBtn" class="btn btn-primary">
+                <i class="material-icons">download</i>
+                Backup herunterladen
+              </button>
             </div>
 
-            <div class="file-upload-area" id="fileUploadArea">
-              <div class="upload-icon">
-                <i class="material-icons">cloud_upload</i>
+            <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--border);">
+
+            <!-- Import Section -->
+            <div class="restore-section">
+              <h3><i class="material-icons">upload</i> Backup wiederherstellen</h3>
+              <div class="import-info">
+                <p><strong>Hinweis:</strong> Das Wiederherstellen eines Backups überschreibt alle aktuellen Daten!</p>
               </div>
-              <p class="upload-text">
-                CSV-Datei hier ablegen oder klicken zum Auswählen
-              </p>
-              <input type="file" id="csvFileInput" accept=".csv,.txt" hidden />
-            </div>
 
-            <div
-              id="importPreview"
-              class="import-preview"
-              style="display: none"
-            >
-              <h3>Import-Vorschau:</h3>
-              <div id="previewContent"></div>
+              <div class="file-upload-area" id="fileUploadArea">
+                <div class="upload-icon">
+                  <i class="material-icons">cloud_upload</i>
+                </div>
+                <p class="upload-text">
+                  JSON-Backup-Datei hier ablegen oder klicken zum Auswählen
+                </p>
+                <input type="file" id="jsonFileInput" accept=".json" hidden />
+              </div>
+
+              <div
+                id="restorePreview"
+                class="import-preview"
+                style="display: none"
+              >
+                <h3>Restore-Vorschau:</h3>
+                <div id="previewContent"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -183,18 +195,18 @@
           <div class="form-actions">
             <button
               type="button"
-              id="cancelImportBtn"
+              id="cancelBackupBtn"
               class="btn btn-secondary"
             >
               Abbrechen
             </button>
             <button
               type="button"
-              id="confirmImportBtn"
+              id="confirmRestoreBtn"
               class="btn btn-primary"
               style="display: none"
             >
-              Importieren
+              Wiederherstellen
             </button>
           </div>
         </div>
