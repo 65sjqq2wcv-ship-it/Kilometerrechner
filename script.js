@@ -6,6 +6,8 @@ class VehicleManager {
     this.vehicles = this.loadVehicles();
     this.currentEditId = null;
     this.pendingRestoreData = [];
+    this.renderedVehicles = new Set(); // Performance-Tracking
+    this.batchSize = 10; // Batch-Verarbeitung
     this.init();
     this.setGermanLocale();
   }
@@ -25,24 +27,48 @@ class VehicleManager {
     };
   }
 
+  // WICHTIG: Alle Event-Listener
   bindEvents() {
-    // Existing events
-    document.getElementById("addVehicleBtn").addEventListener("click", () => {
-      this.showModal();
-    });
-
+    // Form submission
     document.getElementById("vehicleForm").addEventListener("submit", (e) => {
       e.preventDefault();
       this.saveVehicle();
     });
 
+    // Cancel button
     document.getElementById("cancelBtn").addEventListener("click", () => {
       this.hideModal();
     });
 
+    // Close button (X)
+    document.getElementById("closeModalBtn").addEventListener("click", () => {
+      this.hideModal();
+    });
+
+    // Modal overlay click
     document.getElementById("vehicleModal").addEventListener("click", (e) => {
       if (e.target === e.currentTarget) {
         this.hideModal();
+      }
+    });
+
+    // Add Vehicle Button
+    document.getElementById("addVehicleBtn").addEventListener("click", () => {
+      this.showModal();
+    });
+
+    // EVENT DELEGATION für Fahrzeug-Aktionen
+    document.getElementById("vehicleList").addEventListener("click", (e) => {
+      const button = e.target.closest('.icon-btn');
+      if (!button) return;
+
+      const vehicleId = button.dataset.vehicleId;
+      
+      if (button.classList.contains('edit-btn')) {
+        const vehicle = this.vehicles.find(v => String(v.id) === String(vehicleId));
+        if (vehicle) this.showModal(vehicle);
+      } else if (button.classList.contains('delete-btn')) {
+        this.deleteVehicle(vehicleId);
       }
     });
 
@@ -51,21 +77,17 @@ class VehicleManager {
       this.showBackupModal();
     });
 
-    document
-      .getElementById("closeBackupModalBtn")
-      .addEventListener("click", () => {
-        this.hideBackupModal();
-      });
+    document.getElementById("closeBackupModalBtn").addEventListener("click", () => {
+      this.hideBackupModal();
+    });
 
     document.getElementById("cancelBackupBtn").addEventListener("click", () => {
       this.hideBackupModal();
     });
 
-    document
-      .getElementById("confirmRestoreBtn")
-      .addEventListener("click", () => {
-        this.confirmRestore();
-      });
+    document.getElementById("confirmRestoreBtn").addEventListener("click", () => {
+      this.confirmRestore();
+    });
 
     document.getElementById("backupModal").addEventListener("click", (e) => {
       if (e.target === e.currentTarget) {
@@ -73,12 +95,11 @@ class VehicleManager {
       }
     });
 
-    // Export button
+    // Export and file handling
     document.getElementById("exportBtn").addEventListener("click", () => {
       this.exportBackup();
     });
 
-    // File upload events
     const fileUploadArea = document.getElementById("fileUploadArea");
     const fileInput = document.getElementById("jsonFileInput");
 
@@ -90,7 +111,7 @@ class VehicleManager {
       this.handleFileSelect(e.target.files[0]);
     });
 
-    // Drag and drop events
+    // Drag and drop
     fileUploadArea.addEventListener("dragover", (e) => {
       e.preventDefault();
       fileUploadArea.classList.add("dragover");
@@ -110,6 +131,145 @@ class VehicleManager {
     });
   }
 
+  // SAVE VEHICLE FUNKTION - Das war das Problem!
+  saveVehicle() {
+    try {
+      const name = document.getElementById("vehicleName").value.trim();
+      const pickupDate = document.getElementById("pickupDate").value;
+      const totalMileage = parseInt(document.getElementById("totalMileage").value);
+      const contractDuration = parseInt(document.getElementById("contractDuration").value);
+
+      // Validation
+      if (!name) {
+        alert("Bitte geben Sie einen Fahrzeugnamen ein.");
+        return;
+      }
+
+      if (!pickupDate) {
+        alert("Bitte geben Sie das Abholung-Datum ein.");
+        return;
+      }
+
+      if (!totalMileage || totalMileage <= 0) {
+        alert("Bitte geben Sie eine gültige Fahrleistung ein.");
+        return;
+      }
+
+      if (!contractDuration || contractDuration <= 0) {
+        alert("Bitte geben Sie eine gültige Vertragslaufzeit ein.");
+        return;
+      }
+
+      console.log('SAVE VEHICLE: Processing...', { name, pickupDate, totalMileage, contractDuration });
+
+      const vehicleData = {
+        id: this.currentEditId || Date.now() + Math.random(),
+        name,
+        pickupDate,
+        totalMileage,
+        contractDuration
+      };
+
+      if (this.currentEditId) {
+        // Edit existing vehicle
+        const index = this.vehicles.findIndex(v => String(v.id) === String(this.currentEditId));
+        if (index !== -1) {
+          this.vehicles[index] = vehicleData;
+          console.log('SAVE VEHICLE: Updated existing vehicle at index', index);
+        } else {
+          console.error('SAVE VEHICLE: Vehicle not found for editing, ID:', this.currentEditId);
+          alert('Fehler: Fahrzeug zum Bearbeiten nicht gefunden.');
+          return;
+        }
+      } else {
+        // Add new vehicle
+        this.vehicles.push(vehicleData);
+        console.log('SAVE VEHICLE: Added new vehicle, total count:', this.vehicles.length);
+      }
+
+      // Save to localStorage
+      this.saveVehicles();
+
+      // Update UI efficiently
+      if (this.currentEditId) {
+        // For editing, do a full re-render to be safe
+        this.renderVehicles();
+      } else {
+        // For new vehicles, add the element directly for better UX
+        this.addVehicleElement(vehicleData);
+      }
+
+      // Close modal
+      this.hideModal();
+
+      console.log('SAVE VEHICLE: Successfully completed');
+
+    } catch (error) {
+      console.error('SAVE VEHICLE: Error occurred:', error);
+      alert('Fehler beim Speichern: ' + error.message);
+    }
+  }
+
+  // SAVE VEHICLES FUNKTION - Das ist die fehlende Funktion!
+  saveVehicles() {
+    try {
+      const dataToSave = JSON.stringify(this.vehicles);
+      localStorage.setItem("leasingVehicles", dataToSave);
+
+      // Verifikation dass Daten wirklich gespeichert wurden
+      const savedData = localStorage.getItem("leasingVehicles");
+      const parsedData = JSON.parse(savedData);
+
+      console.log('SAVE: Fahrzeuge gespeichert:', parsedData.length);
+
+      if (parsedData.length !== this.vehicles.length) {
+        console.error('SAVE: Speicherfehler - Längen stimmen nicht überein!');
+      }
+
+      this.registerBackgroundSync();
+    } catch (error) {
+      console.error('SAVE: Fehler beim Speichern:', error);
+      throw error; // Re-throw für Error-Handling in aufrufender Funktion
+    }
+  }
+
+  // LOAD VEHICLES
+  loadVehicles() {
+    try {
+      const saved = localStorage.getItem("leasingVehicles");
+      return saved ? JSON.parse(saved) : [];
+    } catch (error) {
+      console.error('LOAD: Fehler beim Laden:', error);
+      return [];
+    }
+  }
+
+  // Optimized function to add single vehicle element
+  addVehicleElement(vehicle) {
+    const container = document.getElementById("vehicleList");
+    
+    // Check if we need to replace the empty state
+    const emptyState = container.querySelector('.empty-state');
+    if (emptyState) {
+      container.innerHTML = '';
+    }
+
+    // Create and append new vehicle element
+    const vehicleElement = this.createVehicleElement(vehicle);
+    container.appendChild(vehicleElement);
+
+    // Add animation
+    vehicleElement.style.opacity = '0';
+    vehicleElement.style.transform = 'translateY(20px)';
+    
+    requestAnimationFrame(() => {
+      vehicleElement.style.transition = 'all 0.3s ease';
+      vehicleElement.style.opacity = '1';
+      vehicleElement.style.transform = 'translateY(0)';
+    });
+  }
+
+  // MODAL FUNKTIONEN
   showModal(vehicle = null) {
     const modal = document.getElementById("vehicleModal");
     const form = document.getElementById("vehicleForm");
@@ -120,8 +280,7 @@ class VehicleManager {
       document.getElementById("vehicleName").value = vehicle.name;
       document.getElementById("pickupDate").value = vehicle.pickupDate;
       document.getElementById("totalMileage").value = vehicle.totalMileage;
-      document.getElementById("contractDuration").value =
-        vehicle.contractDuration;
+      document.getElementById("contractDuration").value = vehicle.contractDuration;
       this.currentEditId = vehicle.id;
     } else {
       title.textContent = "Fahrzeug hinzufügen";
@@ -158,10 +317,212 @@ class VehicleManager {
     this.pendingRestoreData = [];
   }
 
-  // JSON Export Funktionalität
+  // RENDER FUNKTIONEN
+  renderVehicles() {
+    const container = document.getElementById("vehicleList");
+    const startTime = performance.now();
+
+    if (this.vehicles.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <i class="material-icons">directions_car</i>
+          <h3>Keine Fahrzeuge vorhanden</h3>
+          <p>Fügen Sie Ihr erstes Fahrzeug hinzu oder stellen Sie ein Backup wieder her.</p>
+        </div>
+      `;
+      return;
+    }
+
+    // Performance-optimiertes Rendering mit DocumentFragment
+    this.renderVehiclesBatched(container);
+    
+    console.log(`[PERFORMANCE] Rendering ${this.vehicles.length} vehicles took ${performance.now() - startTime}ms`);
+  }
+
+  // Batch-Rendering für bessere Performance
+  async renderVehiclesBatched(container) {
+    container.innerHTML = ''; // Clear once
+    const fragment = document.createDocumentFragment();
+
+    // Verarbeitung in Batches
+    for (let i = 0; i < this.vehicles.length; i += this.batchSize) {
+      const batch = this.vehicles.slice(i, i + this.batchSize);
+      
+      batch.forEach(vehicle => {
+        const vehicleElement = this.createVehicleElement(vehicle);
+        fragment.appendChild(vehicleElement);
+      });
+
+      // Yield to main thread nach jedem Batch
+      if (i + this.batchSize < this.vehicles.length) {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      }
+    }
+
+    container.appendChild(fragment);
+  }
+
+  // Erstelle einzelnes Fahrzeug-Element (optimiert)
+  createVehicleElement(vehicle) {
+    const data = this.calculateVehicleData(vehicle);
+    const statusClass = this.getStatusClass(data);
+
+    const vehicleCard = document.createElement('div');
+    vehicleCard.className = 'vehicle-card';
+    vehicleCard.dataset.vehicleId = vehicle.id;
+
+    vehicleCard.innerHTML = `
+      <div class="vehicle-header">
+        <h3><i class="material-icons">directions_car</i>${this.escapeHtml(vehicle.name)}</h3>
+        <div class="vehicle-actions">
+          <button class="icon-btn edit-btn" data-vehicle-id="${vehicle.id}">
+            <i class="material-icons">edit</i>
+          </button>
+          <button class="icon-btn delete-btn" data-vehicle-id="${vehicle.id}">
+            <i class="material-icons">delete</i>
+          </button>
+        </div>
+      </div>
+      <div class="vehicle-info">
+        <div class="info-row">
+          <span class="info-label">
+            <i class="material-icons">event</i>
+            Abholung
+          </span>
+          <span class="info-value">${new Date(vehicle.pickupDate).toLocaleDateString(LOCALE)}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">
+            <i class="material-icons">speed</i>
+            Fahrleistung
+          </span>
+          <span class="info-value">${vehicle.totalMileage.toLocaleString(LOCALE)} km</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">
+            <i class="material-icons">schedule</i>
+            Laufzeit
+          </span>
+          <span class="info-value">${vehicle.contractDuration} Monate</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">
+            <i class="material-icons">today</i>
+            Vergangene Tage
+          </span>
+          <span class="info-value">${data.daysSincePickup} / ${data.contractDays}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">
+            <i class="material-icons">straighten</i>
+            km/Tag
+          </span>
+          <span class="info-value">${data.kmPerDay.toLocaleString(LOCALE)}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">
+            <i class="material-icons">timeline</i>
+            km bis heute
+          </span>
+          <span class="info-value ${statusClass}">${data.kmToDate.toLocaleString(LOCALE)} km</span>
+        </div>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill ${statusClass}" style="width: ${Math.min(data.progressPercentage, 100)}%"></div>
+      </div>
+    `;
+
+    return vehicleCard;
+  }
+
+  // DELETE VEHICLE FUNKTION
+  deleteVehicle(id) {
+    if (!confirm("Sind Sie sicher, dass Sie dieses Fahrzeug löschen möchten?")) {
+      return;
+    }
+
+    const startTime = performance.now();
+    
+    // Verwende String-Vergleich für robustes ID-Handling
+    const targetId = String(id);
+    const originalLength = this.vehicles.length;
+    
+    this.vehicles = this.vehicles.filter(v => String(v.id) !== targetId);
+
+    if (this.vehicles.length === originalLength) {
+      console.error('DELETE: Fahrzeug nicht gefunden, ID:', targetId);
+      alert('Fehler beim Löschen: Fahrzeug nicht gefunden');
+      return;
+    }
+
+    this.saveVehicles();
+    
+    // Optimiertes Rendering - nur das gelöschte Element entfernen
+    this.removeVehicleElement(targetId);
+    
+    console.log(`[PERFORMANCE] Delete operation took ${performance.now() - startTime}ms`);
+  }
+
+  // DOM-Element direkt entfernen ohne komplettes Re-Rendering
+  removeVehicleElement(vehicleId) {
+    const element = document.querySelector(`[data-vehicle-id="${vehicleId}"]`);
+    if (element) {
+      element.remove();
+      
+      // Wenn keine Fahrzeuge mehr vorhanden, Empty State anzeigen
+      const container = document.getElementById("vehicleList");
+      if (container.children.length === 0) {
+        this.renderVehicles(); // Zeigt Empty State
+      }
+    } else {
+      // Fallback: komplettes Re-Rendering
+      console.warn('Element not found, falling back to full re-render');
+      this.renderVehicles();
+    }
+  }
+
+  // BERECHNUNGS-FUNKTIONEN
+  calculateVehicleData(vehicle) {
+    const today = new Date();
+    const pickup = new Date(vehicle.pickupDate);
+    const daysSincePickup = Math.floor((today - pickup) / (1000 * 60 * 60 * 24));
+    const contractDays = vehicle.contractDuration * 30;
+    const kmPerDay = Math.round((vehicle.totalMileage / contractDays) * 100) / 100;
+    const kmToDate = Math.round(daysSincePickup * kmPerDay);
+    const progressPercentage = Math.min((daysSincePickup / contractDays) * 100, 100);
+
+    return {
+      daysSincePickup: Math.max(0, daysSincePickup),
+      contractDays,
+      kmPerDay,
+      kmToDate: Math.max(0, kmToDate),
+      progressPercentage,
+      isOverdue: daysSincePickup > contractDays,
+    };
+  }
+
+  getStatusClass(data) {
+    if (data.isOverdue) return "danger";
+    if (data.progressPercentage > 80) return "warning";
+    return "highlight";
+  }
+
+  // HTML-Escaping für Sicherheit
+  escapeHtml(text) {
+    const map = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    };
+    return String(text).replace(/[&<>"']/g, m => map[m]);
+  }
+
+  // BACKUP/EXPORT FUNKTIONEN
   exportBackup() {
     const backupData = {
-      version: "1.21",
+      version: "1.24",
       exportDate: new Date().toISOString(),
       vehicles: this.vehicles
     };
@@ -176,7 +537,7 @@ class VehicleManager {
 
     URL.revokeObjectURL(link.href);
 
-    // Kurze Bestätigung anzeigen
+    // Visual feedback
     const exportBtn = document.getElementById("exportBtn");
     const originalText = exportBtn.innerHTML;
     exportBtn.innerHTML = '<i class="material-icons">check</i> Backup erstellt!';
@@ -188,7 +549,6 @@ class VehicleManager {
     }, 2000);
   }
 
-  // JSON Import Funktionalität
   handleFileSelect(file) {
     if (!file) return;
 
@@ -213,7 +573,6 @@ class VehicleManager {
       return;
     }
 
-    // Validierung der Backup-Struktur
     if (!backupData.vehicles || !Array.isArray(backupData.vehicles)) {
       alert("Ungültiges Backup-Format: Keine Fahrzeugdaten gefunden");
       return;
@@ -234,23 +593,14 @@ class VehicleManager {
       };
 
       // Validation
-      if (!result.name) {
-        result.errors.push("Fahrzeugname fehlt");
-      }
+      if (!result.name) result.errors.push("Fahrzeugname fehlt");
       if (!result.pickupDate || !this.isValidDate(result.pickupDate)) {
         result.errors.push("Ungültiges Datum (Format: YYYY-MM-DD)");
       }
-      if (result.totalMileage <= 0) {
-        result.errors.push("Ungültige Fahrleistung");
-      }
-      if (result.contractDuration <= 0) {
-        result.errors.push("Ungültige Vertragslaufzeit");
-      }
+      if (result.totalMileage <= 0) result.errors.push("Ungültige Fahrleistung");
+      if (result.contractDuration <= 0) result.errors.push("Ungültige Vertragslaufzeit");
 
-      if (result.errors.length > 0) {
-        hasErrors = true;
-      }
-
+      if (result.errors.length > 0) hasErrors = true;
       results.push(result);
     });
 
@@ -261,7 +611,6 @@ class VehicleManager {
   isValidDate(dateString) {
     const regex = /^\d{4}-\d{2}-\d{2}$/;
     if (!regex.test(dateString)) return false;
-
     const date = new Date(dateString);
     return date instanceof Date && !isNaN(date);
   }
@@ -276,14 +625,14 @@ class VehicleManager {
     results.forEach((item) => {
       const hasError = item.errors.length > 0;
       html += `
-            <div class="preview-item ${hasError ? "error" : ""}">
-                <strong>Fahrzeug ${item.index}: ${item.name || "Unbenannt"}</strong>
-                <div class="preview-details">
-                    Abholung: ${item.pickupDate}, Fahrleistung: ${item.totalMileage} km, Laufzeit: ${item.contractDuration} Monate
-                </div>
-                ${hasError ? `<div class="error-text">Fehler: ${item.errors.join(", ")}</div>` : ""}
-            </div>
-        `;
+        <div class="preview-item ${hasError ? "error" : ""}">
+          <strong>Fahrzeug ${item.index}: ${this.escapeHtml(item.name || "Unbenannt")}</strong>
+          <div class="preview-details">
+            Abholung: ${item.pickupDate}, Fahrleistung: ${item.totalMileage} km, Laufzeit: ${item.contractDuration} Monate
+          </div>
+          ${hasError ? `<div class="error-text">Fehler: ${item.errors.join(", ")}</div>` : ""}
+        </div>
+      `;
     });
 
     const validCount = results.filter((item) => item.errors.length === 0).length;
@@ -293,15 +642,14 @@ class VehicleManager {
       ? `<br>Backup vom: ${new Date(backupData.exportDate).toLocaleDateString('de-DE')}`
       : '';
 
-    // Verwende CSS-Variablen statt fest kodierte Farben
     html = `
-        <div class="restore-summary">
-            <strong>Restore-Zusammenfassung:</strong><br>
-            ${validCount} gültige Fahrzeuge, ${errorCount} fehlerhafte Datensätze
-            ${backupInfo}
-            <br><strong>Warnung:</strong> Dies überschreibt alle aktuellen Daten!
-        </div>
-        ${html}
+      <div class="restore-summary">
+        <strong>Restore-Zusammenfassung:</strong><br>
+        ${validCount} gültige Fahrzeuge, ${errorCount} fehlerhafte Datensätze
+        ${backupInfo}
+        <br><strong>Warnung:</strong> Dies überschreibt alle aktuellen Daten!
+      </div>
+      ${html}
     `;
 
     previewContent.innerHTML = html;
@@ -323,9 +671,11 @@ class VehicleManager {
     }
 
     try {
-      // Alle aktuellen Daten löschen und neue Daten laden
+      // ID-Generierung mit besserer Eindeutigkeit
+      let idCounter = Date.now();
+      
       this.vehicles = this.pendingRestoreData.map(item => ({
-        id: item.id || Date.now() + Math.random(),
+        id: item.id || (idCounter++),
         name: item.name,
         pickupDate: item.pickupDate,
         totalMileage: item.totalMileage,
@@ -335,215 +685,35 @@ class VehicleManager {
       this.saveVehicles();
       this.renderVehicles();
 
-      // Modal schließen BEVOR alert
       this.hideBackupModal();
 
-      // Alert nach kurzer Verzögerung
-      setTimeout(() => {
+      /*setTimeout(() => {
         alert(`${this.pendingRestoreData.length} Fahrzeuge erfolgreich wiederhergestellt!`);
-      }, 100);
+      }, 100);*/
 
     } catch (error) {
       console.error('Fehler beim Wiederherstellen:', error);
+      alert('Fehler beim Wiederherstellen der Daten. Bitte versuchen Sie es erneut.');
     }
   }
 
-  saveVehicles() {
-    try {
-      const dataToSave = JSON.stringify(this.vehicles);
-      localStorage.setItem("leasingVehicles", dataToSave);
-
-      // Verifikation dass Daten wirklich gespeichert wurden
-      const savedData = localStorage.getItem("leasingVehicles");
-      const parsedData = JSON.parse(savedData);
-
-      console.log('SAVE: Fahrzeuge gespeichert:', parsedData.length);
-
-      if (parsedData.length !== this.vehicles.length) {
-        console.error('SAVE: Speicherfehler - Längen stimmen nicht überein!');
-      }
-
-      this.registerBackgroundSync();
-    } catch (error) {
-      console.error('SAVE: Fehler beim Speichern:', error);
-    }
-  }
-
-  deleteVehicle(id) {
-    if (confirm("Sind Sie sicher, dass Sie dieses Fahrzeug löschen möchten?")) {
-      // ID als Number für korrekte Vergleiche
-      const numericId = Number(id);
-
-      this.vehicles = this.vehicles.filter((v) => Number(v.id) !== numericId);
-      this.saveVehicles();
-      this.renderVehicles();
-    }
-  }
-
-  calculateVehicleData(vehicle) {
-    const today = new Date();
-    const pickup = new Date(vehicle.pickupDate);
-    const daysSincePickup = Math.floor(
-      (today - pickup) / (1000 * 60 * 60 * 24)
-    );
-    const contractDays = vehicle.contractDuration * 30; // Approximation: 30 Tage pro Monat
-    const kmPerDay =
-      Math.round((vehicle.totalMileage / contractDays) * 100) / 100;
-    const kmToDate = Math.round(daysSincePickup * kmPerDay);
-    const progressPercentage = Math.min(
-      (daysSincePickup / contractDays) * 100,
-      100
-    );
-
-    return {
-      daysSincePickup: Math.max(0, daysSincePickup),
-      contractDays,
-      kmPerDay,
-      kmToDate: Math.max(0, kmToDate),
-      progressPercentage,
-      isOverdue: daysSincePickup > contractDays,
-    };
-  }
-
-  getStatusClass(data) {
-    if (data.isOverdue) return "danger";
-    if (data.progressPercentage > 80) return "warning";
-    return "highlight";
-  }
-
-  renderVehicles() {
-    const container = document.getElementById("vehicleList");
-
-    if (this.vehicles.length === 0) {
-      container.innerHTML = `
-                <div class="empty-state">
-                    <i class="material-icons">directions_car</i>
-                    <h3>Keine Fahrzeuge vorhanden</h3>
-                    <p>Fügen Sie Ihr erstes Fahrzeug hinzu oder stellen Sie ein Backup wieder her.</p>
-                </div>
-            `;
-      return;
-    }
-
-    container.innerHTML = this.vehicles
-      .map((vehicle) => {
-        const data = this.calculateVehicleData(vehicle);
-        const statusClass = this.getStatusClass(data);
-
-        return `
-                <div class="vehicle-card">
-                    <div class="vehicle-header">
-                        <h3><i class="material-icons">directions_car</i>${vehicle.name
-          }</h3>
-                        <div class="vehicle-actions">
-                            <button class="icon-btn" onclick="vehicleManager.showModal(${JSON.stringify(
-            vehicle
-          ).replace(/"/g, "&quot;")})">
-                                <i class="material-icons">edit</i>
-                            </button>
-                            <button class="icon-btn" onclick="vehicleManager.deleteVehicle(${vehicle.id
-          })">
-                                <i class="material-icons">delete</i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="vehicle-info">
-                        <div class="info-row">
-                            <span class="info-label">
-                                <i class="material-icons">event</i>
-                                Abholung
-                            </span>
-                            <span class="info-value">${new Date(
-            vehicle.pickupDate
-          ).toLocaleDateString(LOCALE)}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">
-                                <i class="material-icons">speed</i>
-                                Fahrleistung
-                            </span>
-                            <span class="info-value">${vehicle.totalMileage.toLocaleString(
-            LOCALE
-          )} km</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">
-                                <i class="material-icons">schedule</i>
-                                Laufzeit
-                            </span>
-                            <span class="info-value">${vehicle.contractDuration
-          } Monate</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">
-                                <i class="material-icons">today</i>
-                                Vergangene Tage
-                            </span>
-                            <span class="info-value">${data.daysSincePickup} / ${data.contractDays
-          }</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">
-                                <i class="material-icons">straighten</i>
-                                km/Tag
-                            </span>
-                            <span class="info-value">${data.kmPerDay.toLocaleString(
-            LOCALE
-          )}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">
-                                <i class="material-icons">timeline</i>
-                                km bis heute
-                            </span>
-                            <span class="info-value ${statusClass}">${data.kmToDate.toLocaleString(
-            LOCALE
-          )} km</span>
-                        </div>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill ${statusClass}" style="width: ${Math.min(
-            data.progressPercentage,
-            100
-          )}%"></div>
-                    </div>
-                </div>
-            `;
-      })
-      .join("");
-  }
-
+  // UTILITY FUNKTIONEN
   updateVehiclesDaily() {
-    // Update every hour to keep data fresh
     setInterval(() => {
       this.renderVehicles();
     }, 3600000);
   }
 
-  loadVehicles() {
-    const saved = localStorage.getItem("leasingVehicles");
-    return saved ? JSON.parse(saved) : [];
-  }
-
-  saveVehicles() {
-    localStorage.setItem("leasingVehicles", JSON.stringify(this.vehicles));
-    this.registerBackgroundSync();
-  }
-
-  // Offline Support Funktionen
   initOfflineSupport() {
-    // Online/Offline Status überwachen
     window.addEventListener('online', () => this.handleOnlineStatus(true));
     window.addEventListener('offline', () => this.handleOnlineStatus(false));
 
-    // Service Worker Messages
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.addEventListener('message', (event) => {
         this.handleServiceWorkerMessage(event.data);
       });
     }
 
-    // Initial Status setzen
     this.handleOnlineStatus(navigator.onLine);
   }
 
@@ -553,11 +723,9 @@ class VehicleManager {
     if (isOnline) {
       statusIndicator.textContent = '';
       statusIndicator.className = 'online-status';
-      console.log('[APP] Online-Modus');
     } else {
       statusIndicator.textContent = '📱 Offline-Modus';
       statusIndicator.className = 'offline-status';
-      console.log('[APP] Offline-Modus - Daten werden lokal gespeichert');
     }
   }
 
@@ -585,11 +753,9 @@ class VehicleManager {
     }
   }
 
-  // Service Worker Update-Handler
   initServiceWorkerUpdates() {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.ready.then((registration) => {
-        // Auf Updates prüfen
         registration.addEventListener('updatefound', () => {
           const newWorker = registration.installing;
           newWorker.addEventListener('statechange', () => {
@@ -613,7 +779,6 @@ class VehicleManager {
     document.body.insertBefore(updateBar, document.body.firstChild);
   }
 
-  // Background Sync registrieren
   registerBackgroundSync() {
     if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
       navigator.serviceWorker.ready.then((registration) => {
@@ -623,7 +788,7 @@ class VehicleManager {
   }
 }
 
-// Globale Instanz erstellen
+// Globale Instanz mit verbesserter Initialisierung
 let vehicleManager;
 
 // Service Worker für PWA
@@ -640,83 +805,16 @@ if ("serviceWorker" in navigator) {
   });
 }
 
-// Zusätzlich zum bestehenden Code in script.js:
-
-// Smooth scroll und moderne Interaktionen
+// App-Initialisierung
 document.addEventListener("DOMContentLoaded", function () {
-  // Close modal mit Escape-Taste
+  // Escape-Key Handler
   document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") {
-      if (vehicleManager) {
-        vehicleManager.hideModal();
-        vehicleManager.hideBackupModal();
-      }
-    }
-  });
-
-  // Close button event
-  document.getElementById("closeModalBtn")?.addEventListener("click", () => {
-    if (vehicleManager) {
+    if (e.key === "Escape" && vehicleManager) {
       vehicleManager.hideModal();
+      vehicleManager.hideBackupModal();
     }
   });
 
-  // Smooth animations für Fahrzeugkarten
-  const observerOptions = {
-    threshold: 0.1,
-    rootMargin: "0px 0px -50px 0px",
-  };
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.style.animationDelay = Math.random() * 0.3 + "s";
-        entry.target.classList.add("animate-in");
-      }
-    });
-  }, observerOptions);
-
-  // Animation CSS
-  const animationCSS = `
-        @keyframes slideInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .animate-in {
-            animation: slideInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        }
-    `;
-
-  const style = document.createElement("style");
-  style.textContent = animationCSS;
-  document.head.appendChild(style);
-
-  // Initialize the app nach DOM loading
+  // Initialize app
   vehicleManager = new VehicleManager();
-
-  // Observer für neue Fahrzeugkarten aktivieren
-  const vehicleList = document.getElementById('vehicleList');
-  if (vehicleList) {
-    const vehicleObserver = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach((node) => {
-          if (node.nodeType === 1 && node.classList.contains('vehicle-card')) {
-            observer.observe(node);
-          }
-        });
-      });
-    });
-
-    vehicleObserver.observe(vehicleList, {
-      childList: true,
-      subtree: true
-    });
-  }
 });
