@@ -276,41 +276,33 @@ class VehicleManager {
     results.forEach((item) => {
       const hasError = item.errors.length > 0;
       html += `
-                <div class="preview-item ${hasError ? "error" : ""}">
-                    <strong>Fahrzeug ${item.index}: ${item.name || "Unbenannt"
-        }</strong>
-                    <div class="preview-details">
-                        Abholung: ${item.pickupDate}, Fahrleistung: ${item.totalMileage
-        } km, Laufzeit: ${item.contractDuration} Monate
-                    </div>
-                    ${hasError
-          ? `<div class="error-text">Fehler: ${item.errors.join(
-            ", "
-          )}</div>`
-          : ""
-        }
+            <div class="preview-item ${hasError ? "error" : ""}">
+                <strong>Fahrzeug ${item.index}: ${item.name || "Unbenannt"}</strong>
+                <div class="preview-details">
+                    Abholung: ${item.pickupDate}, Fahrleistung: ${item.totalMileage} km, Laufzeit: ${item.contractDuration} Monate
                 </div>
-            `;
+                ${hasError ? `<div class="error-text">Fehler: ${item.errors.join(", ")}</div>` : ""}
+            </div>
+        `;
     });
 
-    const validCount = results.filter(
-      (item) => item.errors.length === 0
-    ).length;
+    const validCount = results.filter((item) => item.errors.length === 0).length;
     const errorCount = results.filter((item) => item.errors.length > 0).length;
 
     const backupInfo = backupData.exportDate
       ? `<br>Backup vom: ${new Date(backupData.exportDate).toLocaleDateString('de-DE')}`
       : '';
 
+    // Verwende CSS-Variablen statt fest kodierte Farben
     html = `
-            <div style="margin-bottom: 20px; padding: 15px; background: #e3f2fd; border-radius: 8px;">
-                <strong>Restore-Zusammenfassung:</strong><br>
-                ${validCount} gültige Fahrzeuge, ${errorCount} fehlerhafte Datensätze
-                ${backupInfo}
-                <br><strong>Warnung:</strong> Dies überschreibt alle aktuellen Daten!
-            </div>
-            ${html}
-        `;
+        <div class="restore-summary">
+            <strong>Restore-Zusammenfassung:</strong><br>
+            ${validCount} gültige Fahrzeuge, ${errorCount} fehlerhafte Datensätze
+            ${backupInfo}
+            <br><strong>Warnung:</strong> Dies überschreibt alle aktuellen Daten!
+        </div>
+        ${html}
+    `;
 
     previewContent.innerHTML = html;
     previewDiv.style.display = "block";
@@ -330,64 +322,59 @@ class VehicleManager {
       return;
     }
 
-    // Alle aktuellen Daten löschen und neue Daten laden
-    this.vehicles = this.pendingRestoreData.map(item => ({
-      id: item.id || Date.now() + Math.random(),
-      name: item.name,
-      pickupDate: item.pickupDate,
-      totalMileage: item.totalMileage,
-      contractDuration: item.contractDuration,
-    }));
+    try {
+      // Alle aktuellen Daten löschen und neue Daten laden
+      this.vehicles = this.pendingRestoreData.map(item => ({
+        id: item.id || Date.now() + Math.random(),
+        name: item.name,
+        pickupDate: item.pickupDate,
+        totalMileage: item.totalMileage,
+        contractDuration: item.contractDuration,
+      }));
 
-    this.saveVehicles();
-    this.renderVehicles();
-    this.hideBackupModal();
+      this.saveVehicles();
+      this.renderVehicles();
 
-    alert(`${this.pendingRestoreData.length} Fahrzeuge erfolgreich wiederhergestellt!`);
+      // Modal schließen BEVOR alert
+      this.hideBackupModal();
+
+      // Alert nach kurzer Verzögerung
+      setTimeout(() => {
+        alert(`${this.pendingRestoreData.length} Fahrzeuge erfolgreich wiederhergestellt!`);
+      }, 100);
+
+    } catch (error) {
+      console.error('Fehler beim Wiederherstellen:', error);
+    }
   }
 
-  saveVehicle() {
-    const name = document.getElementById("vehicleName").value;
-    const pickupDate = document.getElementById("pickupDate").value;
-    const totalMileage = parseInt(
-      document.getElementById("totalMileage").value
-    );
-    const contractDuration = parseInt(
-      document.getElementById("contractDuration").value
-    );
+  saveVehicles() {
+    try {
+      const dataToSave = JSON.stringify(this.vehicles);
+      localStorage.setItem("leasingVehicles", dataToSave);
 
-    if (this.currentEditId) {
-      // Bearbeiten
-      const index = this.vehicles.findIndex((v) => v.id === this.currentEditId);
-      if (index !== -1) {
-        this.vehicles[index] = {
-          ...this.vehicles[index],
-          name,
-          pickupDate,
-          totalMileage,
-          contractDuration,
-        };
+      // Verifikation dass Daten wirklich gespeichert wurden
+      const savedData = localStorage.getItem("leasingVehicles");
+      const parsedData = JSON.parse(savedData);
+
+      console.log('SAVE: Fahrzeuge gespeichert:', parsedData.length);
+
+      if (parsedData.length !== this.vehicles.length) {
+        console.error('SAVE: Speicherfehler - Längen stimmen nicht überein!');
       }
-    } else {
-      // Neu hinzufügen
-      const vehicle = {
-        id: Date.now(),
-        name,
-        pickupDate,
-        totalMileage,
-        contractDuration,
-      };
-      this.vehicles.push(vehicle);
-    }
 
-    this.saveVehicles();
-    this.renderVehicles();
-    this.hideModal();
+      this.registerBackgroundSync();
+    } catch (error) {
+      console.error('SAVE: Fehler beim Speichern:', error);
+    }
   }
 
   deleteVehicle(id) {
     if (confirm("Sind Sie sicher, dass Sie dieses Fahrzeug löschen möchten?")) {
-      this.vehicles = this.vehicles.filter((v) => v.id !== id);
+      // ID als Number für korrekte Vergleiche
+      const numericId = Number(id);
+
+      this.vehicles = this.vehicles.filter((v) => Number(v.id) !== numericId);
       this.saveVehicles();
       this.renderVehicles();
     }

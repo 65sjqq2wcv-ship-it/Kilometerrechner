@@ -836,3 +836,21 @@ body {
 .restore-section {
   text-align: left;
 }
+
+/* Restore Summary - Dark Mode kompatibel */
+.restore-summary {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: rgba(37, 99, 235, 0.1);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+}
+
+/* Dark Mode Anpassung */
+@media (prefers-color-scheme: dark) {
+  .restore-summary {
+    background: rgba(37, 99, 235, 0.2);
+    border: 1px solid rgba(37, 99, 235, 0.3);
+  }
+}
