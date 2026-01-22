@@ -2,14 +2,18 @@
 const LOCALE = 'de-DE';
 
 class VehicleManager {
+  // setGermanLocale() Funktion komplett entfernen
+
   constructor() {
     this.vehicles = this.loadVehicles();
     this.currentEditId = null;
     this.pendingRestoreData = [];
-    this.renderedVehicles = new Set(); // Performance-Tracking
-    this.batchSize = 10; // Batch-Verarbeitung
+    this.renderedVehicles = new Set();
+    this.batchSize = 10;
+    this.isSaving = false;
+    this._syncRegistered = false;
     this.init();
-    this.setGermanLocale();
+    // this.setGermanLocale(); // <- ENTFERNEN
   }
 
   init() {
@@ -20,118 +24,125 @@ class VehicleManager {
     this.initServiceWorkerUpdates();
   }
 
-  setGermanLocale() {
-    // Für alle Zahlenformatierungen deutsche Einstellungen verwenden
-    Number.prototype.toLocaleString = function (locales, options) {
-      return Number.prototype.toLocaleString.call(this, LOCALE, options);
-    };
-  }
-
-  // WICHTIG: Alle Event-Listener
   bindEvents() {
-    // Form submission
-    document.getElementById("vehicleForm").addEventListener("submit", (e) => {
-      e.preventDefault();
-      this.saveVehicle();
-    });
+    console.log('BIND EVENTS: Starting...');
 
-    // Cancel button
-    document.getElementById("cancelBtn").addEventListener("click", () => {
-      this.hideModal();
-    });
+    try {
+      // Form submission
+      document.getElementById("vehicleForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        this.saveVehicle();
+      });
 
-    // Close button (X)
-    document.getElementById("closeModalBtn").addEventListener("click", () => {
-      this.hideModal();
-    });
-
-    // Modal overlay click
-    document.getElementById("vehicleModal").addEventListener("click", (e) => {
-      if (e.target === e.currentTarget) {
+      // Cancel button
+      document.getElementById("cancelBtn").addEventListener("click", () => {
         this.hideModal();
+      });
+
+      // Close button (X)
+      document.getElementById("closeModalBtn").addEventListener("click", () => {
+        this.hideModal();
+      });
+
+      // Modal overlay click
+      document.getElementById("vehicleModal").addEventListener("click", (e) => {
+        if (e.target === e.currentTarget) {
+          this.hideModal();
+        }
+      });
+
+      // Add Vehicle Button
+      const addBtn = document.getElementById("addVehicleBtn");
+      if (addBtn) {
+        addBtn.addEventListener("click", () => {
+          console.log('ADD BUTTON CLICKED!');
+          this.showModal();
+        });
+        console.log('BIND EVENTS: Add button bound');
+      } else {
+        console.error('BIND EVENTS: addVehicleBtn not found!');
       }
-    });
 
-    // Add Vehicle Button
-    document.getElementById("addVehicleBtn").addEventListener("click", () => {
-      this.showModal();
-    });
+      // EVENT DELEGATION für Fahrzeug-Aktionen
+      document.getElementById("vehicleList").addEventListener("click", (e) => {
+        const button = e.target.closest('.icon-btn');
+        if (!button) return;
 
-    // EVENT DELEGATION für Fahrzeug-Aktionen
-    document.getElementById("vehicleList").addEventListener("click", (e) => {
-      const button = e.target.closest('.icon-btn');
-      if (!button) return;
+        const vehicleId = button.dataset.vehicleId;
 
-      const vehicleId = button.dataset.vehicleId;
-      
-      if (button.classList.contains('edit-btn')) {
-        const vehicle = this.vehicles.find(v => String(v.id) === String(vehicleId));
-        if (vehicle) this.showModal(vehicle);
-      } else if (button.classList.contains('delete-btn')) {
-        this.deleteVehicle(vehicleId);
-      }
-    });
+        if (button.classList.contains('edit-btn')) {
+          const vehicle = this.vehicles.find(v => String(v.id) === String(vehicleId));
+          if (vehicle) this.showModal(vehicle);
+        } else if (button.classList.contains('delete-btn')) {
+          this.deleteVehicle(vehicleId);
+        }
+      });
 
-    // Backup/Restore events
-    document.getElementById("backupBtn").addEventListener("click", () => {
-      this.showBackupModal();
-    });
+      // Backup/Restore events
+      document.getElementById("backupBtn").addEventListener("click", () => {
+        this.showBackupModal();
+      });
 
-    document.getElementById("closeBackupModalBtn").addEventListener("click", () => {
-      this.hideBackupModal();
-    });
-
-    document.getElementById("cancelBackupBtn").addEventListener("click", () => {
-      this.hideBackupModal();
-    });
-
-    document.getElementById("confirmRestoreBtn").addEventListener("click", () => {
-      this.confirmRestore();
-    });
-
-    document.getElementById("backupModal").addEventListener("click", (e) => {
-      if (e.target === e.currentTarget) {
+      document.getElementById("closeBackupModalBtn").addEventListener("click", () => {
         this.hideBackupModal();
-      }
-    });
+      });
 
-    // Export and file handling
-    document.getElementById("exportBtn").addEventListener("click", () => {
-      this.exportBackup();
-    });
+      document.getElementById("cancelBackupBtn").addEventListener("click", () => {
+        this.hideBackupModal();
+      });
 
-    const fileUploadArea = document.getElementById("fileUploadArea");
-    const fileInput = document.getElementById("jsonFileInput");
+      document.getElementById("confirmRestoreBtn").addEventListener("click", () => {
+        this.confirmRestore();
+      });
 
-    fileUploadArea.addEventListener("click", () => {
-      fileInput.click();
-    });
+      document.getElementById("backupModal").addEventListener("click", (e) => {
+        if (e.target === e.currentTarget) {
+          this.hideBackupModal();
+        }
+      });
 
-    fileInput.addEventListener("change", (e) => {
-      this.handleFileSelect(e.target.files[0]);
-    });
+      // Export and file handling
+      document.getElementById("exportBtn").addEventListener("click", () => {
+        this.exportBackup();
+      });
 
-    // Drag and drop
-    fileUploadArea.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      fileUploadArea.classList.add("dragover");
-    });
+      const fileUploadArea = document.getElementById("fileUploadArea");
+      const fileInput = document.getElementById("jsonFileInput");
 
-    fileUploadArea.addEventListener("dragleave", () => {
-      fileUploadArea.classList.remove("dragover");
-    });
+      fileUploadArea.addEventListener("click", () => {
+        fileInput.click();
+      });
 
-    fileUploadArea.addEventListener("drop", (e) => {
-      e.preventDefault();
-      fileUploadArea.classList.remove("dragover");
-      const file = e.dataTransfer.files[0];
-      if (file && (file.type === "application/json" || file.name.endsWith(".json"))) {
-        this.handleFileSelect(file);
-      }
-    });
+      fileInput.addEventListener("change", (e) => {
+        this.handleFileSelect(e.target.files[0]);
+      });
+
+      // Drag and drop
+      fileUploadArea.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        fileUploadArea.classList.add("dragover");
+      });
+
+      fileUploadArea.addEventListener("dragleave", () => {
+        fileUploadArea.classList.remove("dragover");
+      });
+
+      fileUploadArea.addEventListener("drop", (e) => {
+        e.preventDefault();
+        fileUploadArea.classList.remove("dragover");
+        const file = e.dataTransfer.files[0];
+        if (file && (file.type === "application/json" || file.name.endsWith(".json"))) {
+          this.handleFileSelect(file);
+        }
+      });
+
+      console.log('BIND EVENTS: All events bound successfully');
+    } catch (error) {
+      console.error('BIND EVENTS: Error occurred:', error);
+    }
   }
 
-  // SAVE VEHICLE FUNKTION - Das war das Problem!
+  // SAVE VEHICLE - Einzige Version ohne Rekursion
   saveVehicle() {
     try {
       const name = document.getElementById("vehicleName").value.trim();
@@ -140,30 +151,15 @@ class VehicleManager {
       const contractDuration = parseInt(document.getElementById("contractDuration").value);
 
       // Validation
-      if (!name) {
-        alert("Bitte geben Sie einen Fahrzeugnamen ein.");
-        return;
-      }
-
-      if (!pickupDate) {
-        alert("Bitte geben Sie das Abholung-Datum ein.");
-        return;
-      }
-
-      if (!totalMileage || totalMileage <= 0) {
-        alert("Bitte geben Sie eine gültige Fahrleistung ein.");
-        return;
-      }
-
-      if (!contractDuration || contractDuration <= 0) {
-        alert("Bitte geben Sie eine gültige Vertragslaufzeit ein.");
+      if (!name || !pickupDate || !totalMileage || totalMileage <= 0 || !contractDuration || contractDuration <= 0) {
+        alert("Bitte füllen Sie alle Felder korrekt aus.");
         return;
       }
 
       console.log('SAVE VEHICLE: Processing...', { name, pickupDate, totalMileage, contractDuration });
 
       const vehicleData = {
-        id: this.currentEditId || Date.now() + Math.random(),
+        id: this.currentEditId || Date.now(),
         name,
         pickupDate,
         totalMileage,
@@ -187,49 +183,36 @@ class VehicleManager {
         console.log('SAVE VEHICLE: Added new vehicle, total count:', this.vehicles.length);
       }
 
-      // Save to localStorage
-      this.saveVehicles();
+      // DIREKTES Speichern ohne saveVehicles() Aufruf
+      localStorage.setItem("leasingVehicles", JSON.stringify(this.vehicles));
 
-      // Update UI efficiently
-      if (this.currentEditId) {
-        // For editing, do a full re-render to be safe
-        this.renderVehicles();
-      } else {
-        // For new vehicles, add the element directly for better UX
-        this.addVehicleElement(vehicleData);
-      }
-
-      // Close modal
+      // UI Update
+      this.renderVehicles();
       this.hideModal();
 
-      console.log('SAVE VEHICLE: Successfully completed');
+      console.log('SAVE VEHICLE: Erfolgreich!');
 
     } catch (error) {
-      console.error('SAVE VEHICLE: Error occurred:', error);
+      console.error('SAVE VEHICLE: Fehler:', error);
       alert('Fehler beim Speichern: ' + error.message);
     }
   }
 
-  // SAVE VEHICLES FUNKTION - Das ist die fehlende Funktion!
+  // SAVE VEHICLES - Einzige einfache Version
   saveVehicles() {
+    if (this.isSaving) {
+      console.log('SAVE: Bereits am Speichern - überspringe');
+      return;
+    }
+
     try {
-      const dataToSave = JSON.stringify(this.vehicles);
-      localStorage.setItem("leasingVehicles", dataToSave);
-
-      // Verifikation dass Daten wirklich gespeichert wurden
-      const savedData = localStorage.getItem("leasingVehicles");
-      const parsedData = JSON.parse(savedData);
-
-      console.log('SAVE: Fahrzeuge gespeichert:', parsedData.length);
-
-      if (parsedData.length !== this.vehicles.length) {
-        console.error('SAVE: Speicherfehler - Längen stimmen nicht überein!');
-      }
-
-      this.registerBackgroundSync();
+      this.isSaving = true;
+      localStorage.setItem("leasingVehicles", JSON.stringify(this.vehicles));
+      console.log('SAVE: Fahrzeuge gespeichert:', this.vehicles.length);
     } catch (error) {
       console.error('SAVE: Fehler beim Speichern:', error);
-      throw error; // Re-throw für Error-Handling in aufrufender Funktion
+    } finally {
+      this.isSaving = false;
     }
   }
 
@@ -244,36 +227,25 @@ class VehicleManager {
     }
   }
 
-  // Optimized function to add single vehicle element
-  addVehicleElement(vehicle) {
-    const container = document.getElementById("vehicleList");
-    
-    // Check if we need to replace the empty state
-    const emptyState = container.querySelector('.empty-state');
-    if (emptyState) {
-      container.innerHTML = '';
-    }
-
-    // Create and append new vehicle element
-    const vehicleElement = this.createVehicleElement(vehicle);
-    container.appendChild(vehicleElement);
-
-    // Add animation
-    vehicleElement.style.opacity = '0';
-    vehicleElement.style.transform = 'translateY(20px)';
-    
-    requestAnimationFrame(() => {
-      vehicleElement.style.transition = 'all 0.3s ease';
-      vehicleElement.style.opacity = '1';
-      vehicleElement.style.transform = 'translateY(0)';
-    });
-  }
-
   // MODAL FUNKTIONEN
   showModal(vehicle = null) {
+    console.log('SHOW MODAL: Called with vehicle:', vehicle);
+
     const modal = document.getElementById("vehicleModal");
     const form = document.getElementById("vehicleForm");
     const title = document.getElementById("modalTitle");
+
+    if (!modal) {
+      console.error('SHOW MODAL: vehicleModal not found!');
+      return;
+    }
+
+    if (!form) {
+      console.error('SHOW MODAL: vehicleForm not found!');
+      return;
+    }
+
+    console.log('SHOW MODAL: All elements found, proceeding...');
 
     if (vehicle) {
       title.textContent = "Fahrzeug bearbeiten";
@@ -333,27 +305,22 @@ class VehicleManager {
       return;
     }
 
-    // Performance-optimiertes Rendering mit DocumentFragment
     this.renderVehiclesBatched(container);
-    
     console.log(`[PERFORMANCE] Rendering ${this.vehicles.length} vehicles took ${performance.now() - startTime}ms`);
   }
 
-  // Batch-Rendering für bessere Performance
   async renderVehiclesBatched(container) {
-    container.innerHTML = ''; // Clear once
+    container.innerHTML = '';
     const fragment = document.createDocumentFragment();
 
-    // Verarbeitung in Batches
     for (let i = 0; i < this.vehicles.length; i += this.batchSize) {
       const batch = this.vehicles.slice(i, i + this.batchSize);
-      
+
       batch.forEach(vehicle => {
         const vehicleElement = this.createVehicleElement(vehicle);
         fragment.appendChild(vehicleElement);
       });
 
-      // Yield to main thread nach jedem Batch
       if (i + this.batchSize < this.vehicles.length) {
         await new Promise(resolve => setTimeout(resolve, 0));
       }
@@ -362,7 +329,6 @@ class VehicleManager {
     container.appendChild(fragment);
   }
 
-  // Erstelle einzelnes Fahrzeug-Element (optimiert)
   createVehicleElement(vehicle) {
     const data = this.calculateVehicleData(vehicle);
     const statusClass = this.getStatusClass(data);
@@ -389,21 +355,14 @@ class VehicleManager {
             <i class="material-icons">event</i>
             Abholung
           </span>
-          <span class="info-value">${new Date(vehicle.pickupDate).toLocaleDateString(LOCALE)}</span>
+          <span class="info-value">${new Date(vehicle.pickupDate).toLocaleDateString('de-DE')}</span>
         </div>
         <div class="info-row">
           <span class="info-label">
             <i class="material-icons">speed</i>
             Fahrleistung
           </span>
-          <span class="info-value">${vehicle.totalMileage.toLocaleString(LOCALE)} km</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">
-            <i class="material-icons">schedule</i>
-            Laufzeit
-          </span>
-          <span class="info-value">${vehicle.contractDuration} Monate</span>
+          <span class="info-value">${vehicle.totalMileage.toLocaleString('de-DE')} km</span>
         </div>
         <div class="info-row">
           <span class="info-label">
@@ -417,7 +376,7 @@ class VehicleManager {
             <i class="material-icons">straighten</i>
             km/Tag
           </span>
-          <span class="info-value">${data.kmPerDay.toLocaleString(LOCALE)}</span>
+          <span class="info-value">${data.kmPerDay.toLocaleString('de-DE')}</span>
         </div>
         <div class="info-row">
           <span class="info-label">
@@ -435,18 +394,15 @@ class VehicleManager {
     return vehicleCard;
   }
 
-  // DELETE VEHICLE FUNKTION
+  // DELETE VEHICLE
   deleteVehicle(id) {
     if (!confirm("Sind Sie sicher, dass Sie dieses Fahrzeug löschen möchten?")) {
       return;
     }
 
-    const startTime = performance.now();
-    
-    // Verwende String-Vergleich für robustes ID-Handling
     const targetId = String(id);
     const originalLength = this.vehicles.length;
-    
+
     this.vehicles = this.vehicles.filter(v => String(v.id) !== targetId);
 
     if (this.vehicles.length === originalLength) {
@@ -455,27 +411,22 @@ class VehicleManager {
       return;
     }
 
-    this.saveVehicles();
-    
-    // Optimiertes Rendering - nur das gelöschte Element entfernen
+    // Direktes Speichern
+    localStorage.setItem("leasingVehicles", JSON.stringify(this.vehicles));
+
     this.removeVehicleElement(targetId);
-    
-    console.log(`[PERFORMANCE] Delete operation took ${performance.now() - startTime}ms`);
   }
 
-  // DOM-Element direkt entfernen ohne komplettes Re-Rendering
   removeVehicleElement(vehicleId) {
     const element = document.querySelector(`[data-vehicle-id="${vehicleId}"]`);
     if (element) {
       element.remove();
-      
-      // Wenn keine Fahrzeuge mehr vorhanden, Empty State anzeigen
+
       const container = document.getElementById("vehicleList");
       if (container.children.length === 0) {
-        this.renderVehicles(); // Zeigt Empty State
+        this.renderVehicles();
       }
     } else {
-      // Fallback: komplettes Re-Rendering
       console.warn('Element not found, falling back to full re-render');
       this.renderVehicles();
     }
@@ -507,7 +458,6 @@ class VehicleManager {
     return "highlight";
   }
 
-  // HTML-Escaping für Sicherheit
   escapeHtml(text) {
     const map = {
       '&': '&amp;',
@@ -537,7 +487,6 @@ class VehicleManager {
 
     URL.revokeObjectURL(link.href);
 
-    // Visual feedback
     const exportBtn = document.getElementById("exportBtn");
     const originalText = exportBtn.innerHTML;
     exportBtn.innerHTML = '<i class="material-icons">check</i> Backup erstellt!';
@@ -592,7 +541,6 @@ class VehicleManager {
         errors: [],
       };
 
-      // Validation
       if (!result.name) result.errors.push("Fahrzeugname fehlt");
       if (!result.pickupDate || !this.isValidDate(result.pickupDate)) {
         result.errors.push("Ungültiges Datum (Format: YYYY-MM-DD)");
@@ -671,9 +619,8 @@ class VehicleManager {
     }
 
     try {
-      // ID-Generierung mit besserer Eindeutigkeit
       let idCounter = Date.now();
-      
+
       this.vehicles = this.pendingRestoreData.map(item => ({
         id: item.id || (idCounter++),
         name: item.name,
@@ -682,14 +629,9 @@ class VehicleManager {
         contractDuration: item.contractDuration,
       }));
 
-      this.saveVehicles();
+      localStorage.setItem("leasingVehicles", JSON.stringify(this.vehicles));
       this.renderVehicles();
-
       this.hideBackupModal();
-
-      /*setTimeout(() => {
-        alert(`${this.pendingRestoreData.length} Fahrzeuge erfolgreich wiederhergestellt!`);
-      }, 100);*/
 
     } catch (error) {
       console.error('Fehler beim Wiederherstellen:', error);
@@ -734,12 +676,17 @@ class VehicleManager {
     if (!indicator) {
       indicator = document.createElement('div');
       indicator.id = 'connection-status';
-      document.querySelector('.hero-section').appendChild(indicator);
+      const heroSection = document.querySelector('.hero-section');
+      if (heroSection) {
+        heroSection.appendChild(indicator);
+      }
     }
     return indicator;
   }
 
   handleServiceWorkerMessage(data) {
+    console.log('[APP] Service Worker Message erhalten:', data.type);
+
     switch (data.type) {
       case 'ONLINE':
         this.handleOnlineStatus(true);
@@ -748,7 +695,7 @@ class VehicleManager {
         this.handleOnlineStatus(false);
         break;
       case 'DATA_SYNCED':
-        console.log('[APP] Daten synchronisiert');
+        console.log('[APP] Daten synchronisiert - keine weitere Aktion');
         break;
     }
   }
@@ -779,16 +726,13 @@ class VehicleManager {
     document.body.insertBefore(updateBar, document.body.firstChild);
   }
 
+  // Background Sync deaktiviert
   registerBackgroundSync() {
-    if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
-      navigator.serviceWorker.ready.then((registration) => {
-        registration.sync.register('background-sync-vehicles');
-      }).catch(err => console.log('Background sync not supported'));
-    }
+    console.log('Background Sync deaktiviert');
   }
 }
 
-// Globale Instanz mit verbesserter Initialisierung
+// Globale Instanz
 let vehicleManager;
 
 // Service Worker für PWA
