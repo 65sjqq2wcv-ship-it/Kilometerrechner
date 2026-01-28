@@ -658,10 +658,6 @@ body {
   }
 }
 
-.form-group input,
-.form-group select {
-}
-
 /* Spezifische Anpassung für Datumsfeld auf verschiedenen Browsern */
 .form-group input[type="date"]::-webkit-calendar-picker-indicator {
   opacity: 0.6;
@@ -685,7 +681,6 @@ body {
     --border: #334155;
   }
 }
-
 
 /* Offline/Online Status Anzeige */
 .offline-status {

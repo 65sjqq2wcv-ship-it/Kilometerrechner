@@ -2,8 +2,6 @@
 const LOCALE = 'de-DE';
 
 class VehicleManager {
-  // setGermanLocale() Funktion komplett entfernen
-
   constructor() {
     this.vehicles = this.loadVehicles();
     this.currentEditId = null;
@@ -13,7 +11,6 @@ class VehicleManager {
     this.isSaving = false;
     this._syncRegistered = false;
     this.init();
-    // this.setGermanLocale(); // <- ENTFERNEN
   }
 
   init() {
@@ -136,6 +133,9 @@ class VehicleManager {
         }
       });
 
+      // **NEUE LÖSUNG**: Heute als Standard-Datum für pickupDate setzen (wie in app.js)
+      document.getElementById("pickupDate").valueAsDate = new Date();
+
       console.log('BIND EVENTS: All events bound successfully');
     } catch (error) {
       console.error('BIND EVENTS: Error occurred:', error);
@@ -257,6 +257,8 @@ class VehicleManager {
     } else {
       title.textContent = "Fahrzeug hinzufügen";
       form.reset();
+      // **NEUE LÖSUNG**: Standard-Datum setzen nach dem Reset (wie in app.js)
+      document.getElementById("pickupDate").valueAsDate = new Date();
       this.currentEditId = null;
     }
 
@@ -394,6 +396,36 @@ class VehicleManager {
     return vehicleCard;
   }
 
+  calculateVehicleData(vehicle) {
+    const pickupDate = new Date(vehicle.pickupDate);
+    const today = new Date();
+    const contractEndDate = new Date(pickupDate);
+    contractEndDate.setMonth(contractEndDate.getMonth() + vehicle.contractDuration);
+
+    const daysSincePickup = Math.max(0, Math.floor((today - pickupDate) / (1000 * 60 * 60 * 24)));
+    const contractDays = Math.floor((contractEndDate - pickupDate) / (1000 * 60 * 60 * 24));
+
+    // **KORREKTE FORMEL**: Mit exakten Werten rechnen
+    const kmPerDayExact = vehicle.totalMileage / 365;
+    const kmPerDay = Math.round(kmPerDayExact); // Nur für die Anzeige gerundet
+    const kmToDate = Math.round(kmPerDayExact * daysSincePickup); // Mit exaktem Wert rechnen
+    const progressPercentage = contractDays > 0 ? (daysSincePickup / contractDays) * 100 : 0;
+
+    return {
+      daysSincePickup,
+      contractDays,
+      kmPerDay,
+      kmToDate,
+      progressPercentage
+    };
+  }
+
+  getStatusClass(data) {
+    if (data.progressPercentage > 100) return 'danger';
+    if (data.progressPercentage > 90) return 'warning';
+    return 'highlight';
+  }
+
   // DELETE VEHICLE
   deleteVehicle(id) {
     if (!confirm("Sind Sie sicher, dass Sie dieses Fahrzeug löschen möchten?")) {
@@ -411,91 +443,32 @@ class VehicleManager {
       return;
     }
 
-    // Direktes Speichern
     localStorage.setItem("leasingVehicles", JSON.stringify(this.vehicles));
-
-    this.removeVehicleElement(targetId);
-  }
-
-  removeVehicleElement(vehicleId) {
-    const element = document.querySelector(`[data-vehicle-id="${vehicleId}"]`);
-    if (element) {
-      element.remove();
-
-      const container = document.getElementById("vehicleList");
-      if (container.children.length === 0) {
-        this.renderVehicles();
-      }
-    } else {
-      console.warn('Element not found, falling back to full re-render');
-      this.renderVehicles();
-    }
-  }
-
-  // BERECHNUNGS-FUNKTIONEN
-  calculateVehicleData(vehicle) {
-    const today = new Date();
-    const pickup = new Date(vehicle.pickupDate);
-    const daysSincePickup = Math.floor((today - pickup) / (1000 * 60 * 60 * 24));
-    const contractDays = vehicle.contractDuration * 30;
-    const kmPerDay = Math.round((vehicle.totalMileage / contractDays) * 100) / 100;
-    const kmToDate = Math.round(daysSincePickup * kmPerDay);
-    const progressPercentage = Math.min((daysSincePickup / contractDays) * 100, 100);
-
-    return {
-      daysSincePickup: Math.max(0, daysSincePickup),
-      contractDays,
-      kmPerDay,
-      kmToDate: Math.max(0, kmToDate),
-      progressPercentage,
-      isOverdue: daysSincePickup > contractDays,
-    };
-  }
-
-  getStatusClass(data) {
-    if (data.isOverdue) return "danger";
-    if (data.progressPercentage > 80) return "warning";
-    return "highlight";
-  }
-
-  escapeHtml(text) {
-    const map = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#039;'
-    };
-    return String(text).replace(/[&<>"']/g, m => map[m]);
+    this.renderVehicles();
   }
 
   // BACKUP/EXPORT FUNKTIONEN
   exportBackup() {
-    const backupData = {
-      version: "1.24",
+    const exportData = {
+      version: "1.26",
       exportDate: new Date().toISOString(),
-      vehicles: this.vehicles
+      vehicles: this.vehicles,
+      appInfo: {
+        name: "Kilometerrechner",
+        version: "1.26"
+      }
     };
 
-    const dataStr = JSON.stringify(backupData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(dataBlob);
-    link.download = `kilometerrechner-backup-${new Date().toISOString().split('T')[0]}.json`;
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const filename = `kilometerrechner-backup-${new Date().toISOString().split('T')[0]}.json`;
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
     link.click();
-
-    URL.revokeObjectURL(link.href);
-
-    const exportBtn = document.getElementById("exportBtn");
-    const originalText = exportBtn.innerHTML;
-    exportBtn.innerHTML = '<i class="material-icons">check</i> Backup erstellt!';
-    exportBtn.style.background = 'var(--accent-color)';
-
-    setTimeout(() => {
-      exportBtn.innerHTML = originalText;
-      exportBtn.style.background = 'var(--primary-color)';
-    }, 2000);
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   }
 
   handleFileSelect(file) {
@@ -637,6 +610,15 @@ class VehicleManager {
       console.error('Fehler beim Wiederherstellen:', error);
       alert('Fehler beim Wiederherstellen der Daten. Bitte versuchen Sie es erneut.');
     }
+  }
+
+  escapeHtml(unsafe) {
+    return unsafe
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
   }
 
   // UTILITY FUNKTIONEN
