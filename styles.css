@@ -449,6 +449,9 @@ body {
   color: var(--text-primary);
   background: var(--surface);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  /* Einheitliche, natürlichere Höhe */
+  min-height: 38px;
+  box-sizing: border-box;
 }
 
 .form-group input:focus,
@@ -655,18 +658,8 @@ body {
   }
 }
 
-.form-group input[type="date"] {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  font-size: 0.875rem;
-  color: var(--text-primary);
-  background: var(--surface);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-  /* Einheitliche Höhe sicherstellen */
-  height: 44px;
-  box-sizing: border-box;
+.form-group input,
+.form-group select {
 }
 
 /* Spezifische Anpassung für Datumsfeld auf verschiedenen Browsern */

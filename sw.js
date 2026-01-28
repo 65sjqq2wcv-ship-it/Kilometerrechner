@@ -1,4 +1,4 @@
-const APP_VERSION = "1.25";
+const APP_VERSION = "1.26";
 const CACHE_NAME = `kilometerrechner-v${APP_VERSION}`;
 const STATIC_CACHE = `kilometerrechner-static-v${APP_VERSION}`;
 const DYNAMIC_CACHE = `kilometerrechner-dynamic-v${APP_VERSION}`;
