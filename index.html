@@ -66,17 +66,26 @@
       <!-- Hero Section -->
       <div class="hero-section">
         <div class="hero-content">
-          <h1 class="app-title">Kilometerrechner</h1>
-          <div class="app-version">v1.27</div>
-          <div class="action-buttons">
-            <button id="addVehicleBtn" class="primary-btn">
-              <i class="material-icons">add_circle</i>
-              <span>Fahrzeug hinzufügen</span>
+          <div class="title-section">
+            <h1 class="app-title">Kilometerrechner</h1>
+            <div class="app-version">v1.28</div>
+          </div>
+          
+          <!-- Dropdown Menu neben dem Titel -->
+          <div class="dropdown-menu">
+            <button id="menuToggleBtn" class="primary-btn menu-toggle icon-menu">
+              <i class="material-icons">more_vert</i>
             </button>
-            <button id="backupBtn" class="secondary-btn">
-              <i class="material-icons">backup</i>
-              <span>Backup/Restore</span>
-            </button>
+            <div id="dropdownContent" class="dropdown-content">
+              <button id="addVehicleBtn" class="dropdown-item">
+                <i class="material-icons">add_circle</i>
+                <span>Fahrzeug hinzufügen</span>
+              </button>
+              <button id="backupBtn" class="dropdown-item">
+                <i class="material-icons">backup</i>
+                <span>Backup/Restore</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>

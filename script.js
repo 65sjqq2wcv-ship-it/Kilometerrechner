@@ -136,6 +136,35 @@ class VehicleManager {
       // **NEUE LÖSUNG**: Heute als Standard-Datum für pickupDate setzen (wie in app.js)
       document.getElementById("pickupDate").valueAsDate = new Date();
 
+      // **DROPDOWN MENU EVENTS** - Neue Ergänzung
+      const menuToggle = document.getElementById("menuToggleBtn");
+      const dropdownMenu = document.querySelector(".dropdown-menu");
+
+      if (menuToggle) {
+        menuToggle.addEventListener("click", (e) => {
+          e.stopPropagation();
+          dropdownMenu.classList.toggle("open");
+        });
+
+        // Schließen bei Klick außerhalb
+        document.addEventListener("click", (e) => {
+          if (!dropdownMenu.contains(e.target)) {
+            dropdownMenu.classList.remove("open");
+          }
+        });
+
+        // Schließen nach Klick auf Dropdown-Item
+        document.querySelectorAll('.dropdown-item').forEach(item => {
+          item.addEventListener('click', () => {
+            dropdownMenu.classList.remove('open');
+          });
+        });
+
+        console.log('BIND EVENTS: Dropdown menu bound');
+      } else {
+        console.error('BIND EVENTS: menuToggleBtn not found!');
+      }
+
       console.log('BIND EVENTS: All events bound successfully');
     } catch (error) {
       console.error('BIND EVENTS: Error occurred:', error);
@@ -317,75 +346,87 @@ class VehicleManager {
 
     for (let i = 0; i < this.vehicles.length; i += this.batchSize) {
       const batch = this.vehicles.slice(i, i + this.batchSize);
-
+      
       batch.forEach(vehicle => {
-        const vehicleElement = this.createVehicleElement(vehicle);
-        fragment.appendChild(vehicleElement);
+        const vehicleCard = this.createVehicleCard(vehicle);
+        fragment.appendChild(vehicleCard);
       });
 
+      // Batch in DOM einfügen
+      if (i === 0) {
+        container.appendChild(fragment);
+      }
+
+      // Kurze Pause für bessere Performance
       if (i + this.batchSize < this.vehicles.length) {
-        await new Promise(resolve => setTimeout(resolve, 0));
+        await new Promise(resolve => setTimeout(resolve, 5));
       }
     }
-
-    container.appendChild(fragment);
   }
 
-  createVehicleElement(vehicle) {
+  createVehicleCard(vehicle) {
     const data = this.calculateVehicleData(vehicle);
     const statusClass = this.getStatusClass(data);
-
+    
     const vehicleCard = document.createElement('div');
     vehicleCard.className = 'vehicle-card';
-    vehicleCard.dataset.vehicleId = vehicle.id;
-
     vehicleCard.innerHTML = `
       <div class="vehicle-header">
-        <h3><i class="material-icons">directions_car</i>${this.escapeHtml(vehicle.name)}</h3>
+        <h3>
+          <i class="material-icons">directions_car</i>
+          ${this.escapeHtml(vehicle.name)}
+        </h3>
         <div class="vehicle-actions">
-          <button class="icon-btn edit-btn" data-vehicle-id="${vehicle.id}">
+          <button class="icon-btn edit-btn" data-vehicle-id="${vehicle.id}" title="Bearbeiten">
             <i class="material-icons">edit</i>
           </button>
-          <button class="icon-btn delete-btn" data-vehicle-id="${vehicle.id}">
+          <button class="icon-btn delete-btn" data-vehicle-id="${vehicle.id}" title="Löschen">
             <i class="material-icons">delete</i>
           </button>
         </div>
       </div>
       <div class="vehicle-info">
         <div class="info-row">
-          <span class="info-label">
+          <div class="info-label">
             <i class="material-icons">event</i>
-            Abholung
-          </span>
-          <span class="info-value">${new Date(vehicle.pickupDate).toLocaleDateString('de-DE')}</span>
+            Abholungsdatum
+          </div>
+          <div class="info-value">${new Date(vehicle.pickupDate).toLocaleDateString(LOCALE)}</div>
         </div>
         <div class="info-row">
-          <span class="info-label">
+          <div class="info-label">
+            <i class="material-icons">schedule</i>
+            Laufzeit
+          </div>
+          <div class="info-value">${vehicle.contractDuration} Monate</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">
             <i class="material-icons">speed</i>
             Fahrleistung
-          </span>
-          <span class="info-value">${vehicle.totalMileage.toLocaleString('de-DE')} km</span>
+          </div>
+          <div class="info-value">${vehicle.totalMileage.toLocaleString(LOCALE)} km</div>
         </div>
         <div class="info-row">
-          <span class="info-label">
+          <div class="info-label">
             <i class="material-icons">today</i>
-            Vergangene Tage
-          </span>
-          <span class="info-value">${data.daysSincePickup} / ${data.contractDays}</span>
+            Tage seit Abholung
+          </div>
+          <div class="info-value">${data.daysSincePickup}</div>
         </div>
         <div class="info-row">
-          <span class="info-label">
-            <i class="material-icons">straighten</i>
+          <div class="info-label">
+            <i class="material-icons">trending_up</i>
             km/Tag
-          </span>
-          <span class="info-value">${data.kmPerDay.toLocaleString('de-DE')}</span>
+          </div>
+          <div class="info-value">${data.kmPerDay}</div>
         </div>
         <div class="info-row">
-          <span class="info-label">
-            <i class="material-icons">timeline</i>
-            km bis heute
-          </span>
-          <span class="info-value ${statusClass}">${data.kmToDate.toLocaleString(LOCALE)} km</span>
+          <div class="info-label">
+            <i class="material-icons">location_on</i>
+            Sollstand heute
+          </div>
+          <div class="info-value ${statusClass}">${data.kmToDate.toLocaleString(LOCALE)} km</div>
         </div>
       </div>
       <div class="progress-bar">
@@ -450,12 +491,12 @@ class VehicleManager {
   // BACKUP/EXPORT FUNKTIONEN
   exportBackup() {
     const exportData = {
-      version: "1.26",
+      version: "1.27",
       exportDate: new Date().toISOString(),
       vehicles: this.vehicles,
       appInfo: {
         name: "Kilometerrechner",
-        version: "1.26"
+        version: "1.27"
       }
     };
 
@@ -731,13 +772,19 @@ if ("serviceWorker" in navigator) {
   });
 }
 
-// App-Initialisierung
+// App-Initialisierung - Erweitert um Dropdown-Schließen
 document.addEventListener("DOMContentLoaded", function () {
-  // Escape-Key Handler
+  // Escape-Key Handler - ERWEITERT
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape" && vehicleManager) {
       vehicleManager.hideModal();
       vehicleManager.hideBackupModal();
+      
+      // Dropdown schließen
+      const dropdownMenu = document.querySelector(".dropdown-menu");
+      if (dropdownMenu) {
+        dropdownMenu.classList.remove("open");
+      }
     }
   });
 

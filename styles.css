@@ -18,8 +18,7 @@
   --surface: #ffffff;
   --border: #e2e8f0;
   --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1),
-    0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --radius: 8px;
 }
 
@@ -29,152 +28,188 @@ body {
   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--background);
   min-height: 100vh;
+  min-height: 100dvh;
   line-height: 1.6;
   color: var(--text-primary);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-/* PWA Vollbild-Behandlung */
-body {
-  background: var(--background);
-  min-height: 100vh;
-  min-height: 100dvh;
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
 }
 
-/* App Container - Vollbreite ohne max-width */
+/* App Container */
 .app-container {
   width: 100%;
   padding: 0;
-  min-height: calc(
-    100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom)
-  );
-  min-height: calc(
-    100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)
-  );
+  min-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  min-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
 }
 
-/* Header Section - Kompakt und professionell */
+/* Header Section */
 .hero-section {
-  padding: 20px;
-  padding-top: max(20px, calc(20px + env(safe-area-inset-top)));
+  padding: 16px;
+  padding-top: max(16px, calc(16px + env(safe-area-inset-top)));
   box-shadow: var(--shadow);
+      position: fixed;
+    top: 0px;
+    left: 0px;
+    z-index: 1000;
+    width: 100%;
+    background: var(--background);
 }
 
+/* Header Layout - Mobile First */
 .hero-content {
-  max-width: 1200px;
-  margin: 0 auto;
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
   gap: 16px;
 }
 
+.title-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
 .app-title {
-  font-size: 1.875rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
 }
 
 .app-version {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
   font-weight: 500;
+  margin-top: 2px;
 }
 
-/* Action Buttons - Horizontal Layout auf größeren Bildschirmen */
-.action-buttons {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
+/* Dropdown Menu - Mobile Optimiert */
+.dropdown-menu {
+  position: relative;
+  display: inline-block;
+}
+
+.icon-menu {
+  min-width: 44px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
   justify-content: center;
-}
-
-/* Buttons - Moderne, flache Gestaltung */
-.primary-btn {
+  padding: 0;
   background: var(--primary-color);
   color: white;
   border: none;
-  padding: 12px 20px;
-  border-radius: var(--radius);
-  font-size: 0.875rem;
-  font-weight: 500;
   cursor: pointer;
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 8px;
   transition: all 0.15s ease;
   box-shadow: var(--shadow);
-  min-width: 140px;
-  justify-content: center;
 }
 
-.primary-btn:hover {
+.icon-menu:hover {
   background: #1d4ed8;
   box-shadow: var(--shadow-lg);
 }
 
-.primary-btn:active {
-  transform: scale(0.98);
+.icon-menu .material-icons {
+  font-size: 22px;
 }
 
-.secondary-btn {
+.dropdown-content {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
   background: var(--surface);
-  color: var(--text-secondary);
   border: 1px solid var(--border);
-  padding: 12px 20px;
   border-radius: var(--radius);
-  font-size: 0.875rem;
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+  min-width: 200px;
+  margin-top: 8px;
+  animation: dropdownAppear 0.15s ease;
+}
+
+@keyframes dropdownAppear {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-menu.open .dropdown-content {
+  display: block;
+}
+
+.dropdown-item {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   transition: all 0.15s ease;
-  min-width: 140px;
-  justify-content: center;
+  border-radius: 0;
+  text-align: left;
 }
 
-.secondary-btn:hover {
-  background: #f1f5f9;
-  border-color: var(--text-secondary);
+.dropdown-item:first-child {
+  border-radius: var(--radius) var(--radius) 0 0;
 }
 
-.secondary-btn:active {
-  transform: scale(0.98);
+.dropdown-item:last-child {
+  border-radius: 0 0 var(--radius) var(--radius);
 }
 
-.primary-btn i,
-.secondary-btn i {
-  font-size: 18px;
+.dropdown-item:hover,
+.dropdown-item:focus {
+  background: var(--background);
+  color: var(--primary-color);
+  outline: none;
+}
+
+.dropdown-item i {
+  font-size: 20px;
+  color: var(--text-secondary);
+}
+
+.dropdown-item:hover i {
+  color: var(--primary-color);
 }
 
 /* Content Section */
 .content-section {
   flex: 1;
-  padding: 24px 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
+  padding: 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
 }
 
-/* Vehicle Grid */
+/* Vehicle Grid - Nur Single Column */
 .vehicle-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 20px;
+  grid-template-columns: 1fr;
+  gap: 16px;
   padding: 0;
 }
 
-/* Vehicle Cards - Clean Design */
+/* Vehicle Cards */
 .vehicle-card {
   background: var(--surface);
   border-radius: var(--radius);
@@ -182,6 +217,10 @@ body {
   overflow: hidden;
   transition: all 0.15s ease;
   position: relative;
+}
+
+.vehicle-card:first-of-type {
+  margin-top: 90px;
 }
 
 .vehicle-card:hover {
@@ -193,14 +232,14 @@ body {
 .vehicle-header {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
-  padding: 16px 20px;
+  padding: 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .vehicle-header h3 {
-  font-size: 1.125rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: var(--text-primary);
   display: flex;
@@ -210,15 +249,15 @@ body {
 
 .vehicle-actions {
   display: flex;
-  gap: 4px;
+  gap: 8px;
 }
 
 .icon-btn {
   background: none;
   border: 1px solid var(--border);
   color: var(--text-secondary);
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius);
   cursor: pointer;
   display: flex;
@@ -242,26 +281,14 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 20px;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--border);
-  /* Textauswahl und Interaktionen deaktivieren */
   user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  cursor: default;
 }
 
 .info-row:last-child {
   border-bottom: none;
 }
-
-/* Hover-Effekt komplett entfernen für rein lesende Tabelle */
-/* 
-.info-row:hover {
-    background: var(--background);
-}
-*/
 
 .info-label {
   font-weight: 500;
@@ -269,7 +296,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
 }
 
 .info-label i {
@@ -280,7 +307,7 @@ body {
 .info-value {
   font-weight: 600;
   color: var(--text-primary);
-  font-size: 0.875rem;
+  font-size: 0.85rem;
 }
 
 .info-value.highlight {
@@ -298,11 +325,11 @@ body {
   font-weight: 700;
 }
 
-/* Progress Bar - Subtiler */
+/* Progress Bar */
 .progress-bar {
   height: 4px;
   background: var(--border);
-  margin: 0 20px 16px;
+  margin: 0 16px 16px;
   border-radius: 2px;
   overflow: hidden;
 }
@@ -325,12 +352,15 @@ body {
 /* Empty State */
 .empty-state {
   text-align: center;
-  padding: 64px 40px;
+  padding: 40px 20px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   margin: 0 auto;
-  max-width: 400px;
+}
+
+.empty-state:first-of-type {
+  margin-top: 90px;
 }
 
 .empty-state i {
@@ -340,14 +370,14 @@ body {
 }
 
 .empty-state h3 {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   margin-bottom: 8px;
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .empty-state p {
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   color: var(--text-secondary);
   line-height: 1.6;
 }
@@ -370,8 +400,8 @@ body {
   margin: 5% auto;
   padding: 0;
   border-radius: var(--radius);
-  width: 90%;
-  max-width: 500px;
+  width: 95%;
+  max-width: 400px;
   box-shadow: var(--shadow-lg);
   animation: modalAppear 0.2s ease;
 }
@@ -388,7 +418,7 @@ body {
 }
 
 .modal-header {
-  padding: 24px 24px 0;
+  padding: 20px 20px 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -399,7 +429,7 @@ body {
 .modal-header h2 {
   color: var(--text-primary);
   font-weight: 600;
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   margin: 0;
 }
 
@@ -424,11 +454,11 @@ body {
 /* Form Styles */
 .modal-content form,
 .import-content {
-  padding: 24px;
+  padding: 20px;
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .form-group label {
@@ -436,21 +466,20 @@ body {
   margin-bottom: 6px;
   font-weight: 500;
   color: var(--text-primary);
-  font-size: 0.875rem;
+  font-size: 0.9rem;
 }
 
 .form-group input,
 .form-group select {
   width: 100%;
-  padding: 10px 12px;
+  padding: 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  font-size: 0.875rem;
+  font-size: 16px; /* Verhindert Zoom auf iOS */
   color: var(--text-primary);
   background: var(--surface);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
-  /* Einheitliche, natürlichere Höhe */
-  min-height: 38px;
+  min-height: 44px; /* Touch-freundlich */
   box-sizing: border-box;
 }
 
@@ -467,17 +496,18 @@ body {
   justify-content: flex-end;
   padding-top: 16px;
   border-top: 1px solid var(--border);
-  margin-top: 24px;
+  margin-top: 20px;
 }
 
 .btn {
-  padding: 10px 16px;
+  padding: 12px 16px;
   border-radius: var(--radius);
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s ease;
   border: none;
+  min-height: 44px;
 }
 
 .btn-primary {
@@ -499,7 +529,7 @@ body {
   background: var(--background);
 }
 
-/* Import Modal Spezifisch */
+/* Import Modal */
 .import-modal-content {
   max-height: 90vh;
   display: flex;
@@ -522,7 +552,7 @@ body {
 .file-upload-area {
   border: 2px dashed var(--border);
   border-radius: var(--radius);
-  padding: 32px 24px;
+  padding: 24px 16px;
   text-align: center;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -543,7 +573,7 @@ body {
 
 .upload-text {
   color: var(--text-secondary);
-  font-size: 0.875rem;
+  font-size: 0.85rem;
 }
 
 /* Import Preview */
@@ -581,114 +611,89 @@ body {
   margin-top: 4px;
 }
 
-/* PWA Standalone Styles */
-@media (display-mode: standalone) {
-  body {
-    background: var(--background);
-    padding-bottom: max(20px, env(safe-area-inset-bottom));
-  }
-
-  .hero-section {
-    padding-top: max(20px, calc(20px + env(safe-area-inset-top)));
-  }
-
-  .app-container {
-    min-height: calc(
-      100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom)
-    );
-    min-height: calc(
-      100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)
-    );
-  }
-
-  .content-section {
-    padding-bottom: max(24px, env(safe-area-inset-bottom));
-  }
+/* Backup Section Styles */
+.backup-section, .restore-section {
+  margin-bottom: 20px;
 }
 
-/* Responsive Design */
-@media (max-width: 640px) {
-  .hero-content {
-    gap: 12px;
-  }
-
-  .action-buttons {
-    flex-direction: column;
-    width: 100%;
-    max-width: 280px;
-  }
-
-  .primary-btn,
-  .secondary-btn {
-    width: 100%;
-  }
-
-  .vehicle-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .content-section {
-    padding: 16px;
-  }
-
-  .modal-content {
-    width: 95%;
-    margin: 2% auto;
-  }
+.backup-section h3, .restore-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+  font-size: 1rem;
 }
 
-@media (min-width: 768px) {
-  .hero-content {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .action-buttons {
-    flex-direction: row;
-  }
+.backup-section h3 i, .restore-section h3 i {
+  font-size: 20px;
 }
 
-/* Reduced Motion */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
+.backup-section p, .restore-section p {
+  margin-bottom: 16px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
 }
 
-/* Spezifische Anpassung für Datumsfeld auf verschiedenen Browsern */
-.form-group input[type="date"]::-webkit-calendar-picker-indicator {
+.backup-section {
+  text-align: center;
+}
+
+#exportBtn {
+  transition: all 0.3s ease;
+  display: inline-flex;
+  margin: 0 auto;
+}
+
+#exportBtn:disabled {
   opacity: 0.6;
-  cursor: pointer;
+  cursor: not-allowed;
 }
 
-.form-group input[type="date"]::-webkit-inner-spin-button,
-.form-group input[type="date"]::-webkit-outer-spin-button {
-  appearance: none;
+.import-modal-content .form-actions {
+  justify-content: center;
+  gap: 16px;
+}
+
+.import-info {
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.import-info p {
   margin: 0;
+  color: #92400e;
+  font-size: 0.85rem;
 }
 
-/* Dark Mode Support */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text-primary: #f8fafc;
-    --text-secondary: #cbd5e1;
-    --text-muted: #64748b;
-    --background: #0f172a;
-    --surface: #1e293b;
-    --border: #334155;
-  }
+.import-info strong {
+  color: #78350f;
 }
 
-/* Offline/Online Status Anzeige */
+.restore-section {
+  text-align: left;
+}
+
+.restore-summary {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: rgba(37, 99, 235, 0.1);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+}
+
+/* Offline/Online Status */
 .offline-status {
   background: #fef3c7;
   color: #92400e;
   padding: 8px 16px;
   text-align: center;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   font-weight: 500;
   border-radius: var(--radius);
   margin: 10px 0;
@@ -712,31 +717,26 @@ body {
   justify-content: space-between;
   align-items: center;
   z-index: 2000;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
+  padding-top: max(12px, calc(12px + env(safe-area-inset-top)));
 }
 
 .update-notification button {
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: white;
-  padding: 4px 12px;
+  padding: 6px 12px;
   border-radius: 4px;
   cursor: pointer;
   margin-left: 8px;
+  min-height: 32px;
 }
 
 .update-notification button:hover {
   background: rgba(255, 255, 255, 0.3);
 }
 
-/* Verbesserte PWA Styles für Offline */
-@media (display-mode: standalone) {
-  .update-notification {
-    padding-top: max(12px, calc(12px + env(safe-area-inset-top)));
-  }
-}
-
-/* Loading States für Offline */
+/* Touch-Optimierungen */
 .loading {
   opacity: 0.6;
   pointer-events: none;
@@ -754,91 +754,40 @@ body {
   font-size: 12px;
 }
 
-/* Backup/Restore Section Styles */
-.backup-section, .restore-section {
-  margin-bottom: 20px;
-}
-
-.backup-section h3, .restore-section h3 {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  color: var(--text-primary);
-  font-size: 1rem;
-}
-
-.backup-section h3 i, .restore-section h3 i {
-  font-size: 20px;
-}
-
-.backup-section p, .restore-section p {
-  margin-bottom: 16px;
-  color: var(--text-secondary);
-  font-size: 0.875rem;
-}
-
-/* Export Button zentrieren */
-.backup-section {
-  text-align: center;
-}
-
-#exportBtn {
-  transition: all 0.3s ease;
-  display: inline-flex;
-  margin: 0 auto;
-}
-
-#exportBtn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Form Actions im Backup Modal zentrieren */
-.import-modal-content .form-actions {
-  justify-content: center;
-  gap: 16px;
-}
-
-/* Import Info erweitert für JSON */
-.import-info {
-  background: #fef3c7;
-  border: 1px solid #fcd34d;
-  border-radius: var(--radius);
-  padding: 12px 16px;
-  margin-bottom: 16px;
-  text-align: left; /* Text in der Info-Box links ausrichten */
-}
-
-.import-info p {
-  margin: 0;
-  color: #92400e;
-  font-size: 0.875rem;
-}
-
-.import-info strong {
-  color: #78350f;
-}
-
-/* Restore Section Text linksbündig lassen */
-.restore-section {
-  text-align: left;
-}
-
-/* Restore Summary - Dark Mode kompatibel */
-.restore-summary {
-  margin-bottom: 20px;
-  padding: 15px;
-  background: rgba(37, 99, 235, 0.1);
-  border: 1px solid rgba(37, 99, 235, 0.2);
-  border-radius: var(--radius);
-  color: var(--text-primary);
-}
-
-/* Dark Mode Anpassung */
+/* Dark Mode Support */
 @media (prefers-color-scheme: dark) {
+  :root {
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #64748b;
+    --background: #0f172a;
+    --surface: #1e293b;
+    --border: #334155;
+  }
+
   .restore-summary {
     background: rgba(37, 99, 235, 0.2);
     border: 1px solid rgba(37, 99, 235, 0.3);
   }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* iOS Safari Fixes */
+.form-group input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+.form-group input[type="date"]::-webkit-inner-spin-button,
+.form-group input[type="date"]::-webkit-outer-spin-button {
+  appearance: none;
+  margin: 0;
 }
