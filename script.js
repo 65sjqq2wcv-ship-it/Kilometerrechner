@@ -403,7 +403,7 @@ class VehicleManager {
         <div class="info-row">
           <div class="info-label">
             <i class="material-icons">speed</i>
-            Fahrleistung
+            Fahrleistung gesamt
           </div>
           <div class="info-value">${vehicle.totalMileage.toLocaleString(LOCALE)} km</div>
         </div>
@@ -424,7 +424,7 @@ class VehicleManager {
         <div class="info-row">
           <div class="info-label">
             <i class="material-icons">location_on</i>
-            Sollstand heute
+            Fahrleistung bis heute
           </div>
           <div class="info-value ${statusClass}">${data.kmToDate.toLocaleString(LOCALE)} km</div>
         </div>

@@ -18,7 +18,8 @@
   --surface: #ffffff;
   --border: #e2e8f0;
   --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1);
   --radius: 8px;
 }
 
@@ -44,8 +45,12 @@ body {
 .app-container {
   width: 100%;
   padding: 0;
-  min-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-  min-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  min-height: calc(
+    100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+  );
+  min-height: calc(
+    100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+  );
   display: flex;
   flex-direction: column;
 }
@@ -55,12 +60,12 @@ body {
   padding: 16px;
   padding-top: max(16px, calc(16px + env(safe-area-inset-top)));
   box-shadow: var(--shadow);
-      position: fixed;
-    top: 0px;
-    left: 0px;
-    z-index: 1000;
-    width: 100%;
-    background: var(--background);
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  z-index: 1000;
+  width: 100%;
+  background: var(--background);
 }
 
 /* Header Layout - Mobile First */
@@ -232,7 +237,7 @@ body {
 .vehicle-header {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
-  padding: 16px;
+  padding: 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -281,7 +286,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
+  padding: 11px 14px;
   border-bottom: 1px solid var(--border);
   user-select: none;
 }
@@ -612,11 +617,13 @@ body {
 }
 
 /* Backup Section Styles */
-.backup-section, .restore-section {
+.backup-section,
+.restore-section {
   margin-bottom: 20px;
 }
 
-.backup-section h3, .restore-section h3 {
+.backup-section h3,
+.restore-section h3 {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -625,11 +632,13 @@ body {
   font-size: 1rem;
 }
 
-.backup-section h3 i, .restore-section h3 i {
+.backup-section h3 i,
+.restore-section h3 i {
   font-size: 20px;
 }
 
-.backup-section p, .restore-section p {
+.backup-section p,
+.restore-section p {
   margin-bottom: 16px;
   color: var(--text-secondary);
   font-size: 0.9rem;
@@ -747,7 +756,7 @@ body {
 }
 
 .offline-indicator::after {
-  content: '📱';
+  content: "📱";
   position: absolute;
   top: 4px;
   right: 4px;
