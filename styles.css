@@ -237,7 +237,7 @@ body {
 .vehicle-header {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
-  padding: 12px;
+  padding: 10px 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -286,7 +286,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 11px 14px;
+  padding: 10px 14px;
   border-bottom: 1px solid var(--border);
   user-select: none;
 }
